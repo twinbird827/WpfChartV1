@@ -1,0 +1,14 @@
+C:\Work\GitHub\WpfChartV1\bin\Debug\WpfChartV1.dll
+C:\Work\GitHub\WpfChartV1\bin\Debug\WpfChartV1.pdb
+C:\Work\GitHub\WpfChartV1\obj\Debug\WpfChartV1.csprojAssemblyReference.cache
+C:\Work\GitHub\WpfChartV1\obj\Debug\Mvvm\UserControls\Chart.g.cs
+C:\Work\GitHub\WpfChartV1\obj\Debug\WpfChartV1_MarkupCompile.cache
+C:\Work\GitHub\WpfChartV1\obj\Debug\WpfChartV1_MarkupCompile.lref
+C:\Work\GitHub\WpfChartV1\obj\Debug\Mvvm\UserControls\Chart.baml
+C:\Work\GitHub\WpfChartV1\obj\Debug\WpfChartV1.g.resources
+C:\Work\GitHub\WpfChartV1\obj\Debug\WpfChartV1.csproj.CoreCompileInputs.cache
+C:\Work\GitHub\WpfChartV1\obj\Debug\WpfChartV1.dll
+C:\Work\GitHub\WpfChartV1\obj\Debug\WpfChartV1.pdb
+C:\Work\GitHub\WpfChartV1\bin\Debug\WpfUtilV2.dll
+C:\Work\GitHub\WpfChartV1\bin\Debug\WpfUtilV2.pdb
+C:\Work\GitHub\WpfChartV1\obj\Debug\WpfChartV1.csproj.CopyComplete
