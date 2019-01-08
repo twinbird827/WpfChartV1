@@ -226,13 +226,18 @@ namespace WpfChartV1.Mvvm.UserControls
                 FontWeight = this.FontWeight,
             })
             {
+                //baseImage.Source = param.DrawCanvas();
                 await Task.Run(() =>
                 {
                     // ｲﾒｰｼﾞはﾊﾞｯｸｸﾞﾗｳﾝﾄﾞで作成
                     return param.DrawCanvas();
                 })
                 .ContinueWith(
-                    image => baseImage.Source = image.Result,
+                    image =>
+                    {
+                        baseImage.Source = null;
+                        baseImage.Source = image.Result;
+                    },
                     TaskScheduler.FromCurrentSynchronizationContext()
                 );
             }

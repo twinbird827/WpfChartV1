@@ -161,10 +161,10 @@ namespace WpfChartV1.Mvvm.UserControls
         /// </summary>
         internal double FontSize { get; set; }
 
-        /// <summary>
-        /// ｷｬﾝﾊﾞｽを取得、または設定します。
-        /// </summary>
-        internal RenderTargetBitmap Canvas { get; set; }
+        ///// <summary>
+        ///// ｷｬﾝﾊﾞｽを取得、または設定します。
+        ///// </summary>
+        //internal RenderTargetBitmap Canvas { get; set; }
 
         // ****************************************************************************************************
         // ｸﾞﾗﾌ描写
@@ -180,8 +180,7 @@ namespace WpfChartV1.Mvvm.UserControls
 
             // ｷｬﾝﾊﾞｽの大きさ決定
             var dpi = WpfUtil.GetDpi(Orientation.Horizontal);
-            Canvas?.Clear();
-            Canvas = new RenderTargetBitmap((int)CanvasWidth, (int)CanvasHeight, dpi, dpi, PixelFormats.Default);
+            var Canvas = new RenderTargetBitmap((int)CanvasWidth, (int)CanvasHeight, dpi, dpi, PixelFormats.Default);
 
             // ﾚﾝﾀﾞｰ作成
             var dv = new DrawingVisual();
@@ -254,6 +253,9 @@ namespace WpfChartV1.Mvvm.UserControls
             GraphWidth = CanvasWidth - OtherThanCanvas.Left - OtherThanCanvas.Right;
 
             // ｸﾞﾗﾌ領域の幅でﾃﾞｰﾀ点数を間引く
+            //Items.AsParallel()
+            //    .ForAll(item => item.ThinningOut(GraphWidth)
+            //);
             Items.Select(item =>
             {
                 item.ThinningOut(GraphWidth);
@@ -310,6 +312,28 @@ namespace WpfChartV1.Mvvm.UserControls
             var pen = FreezePen.CloneCurrentValue();
             pen.DashStyle = DashStyles.Dot;
             if (pen.CanFreeze) pen.Freeze();
+
+            //Enumerable.Range(0, ScaleSplitCountX).AsParallel()
+            //    .ForAll(i =>
+            //    {
+            //        var x = GraphWidth / ScaleSplitCountX * i;
+            //        dc.DrawLine(
+            //            pen,
+            //            new Point(x, 0),
+            //            new Point(x, GraphHeight)
+            //        );
+            //    });
+
+            //Enumerable.Range(0, ScaleSplitCountY).AsParallel()
+            //    .ForAll(i =>
+            //    {
+            //        var y = GraphHeight / ScaleSplitCountY * i;
+            //        dc.DrawLine(
+            //            pen,
+            //            new Point(0, y),
+            //            new Point(GraphWidth, y)
+            //        );
+            //    });
 
             Enumerable.Range(0, ScaleSplitCountX)
                 .Select(i =>
@@ -401,9 +425,8 @@ namespace WpfChartV1.Mvvm.UserControls
             {
                 if (disposing)
                 {
-                    Items.Cast<LineSeries>()
-                        .Select(i => { i.Lines = null; return i; })
-                        .ToArray();
+                    Items.OfType<LineSeries>().AsParallel()
+                        .ForAll(i => i.Lines = null);
                     // TODO: マネージド状態を破棄します (マネージド オブジェクト)。
                     DateTimeFormat1 = null;
                     DateTimeFormat2 = null;
@@ -413,8 +436,13 @@ namespace WpfChartV1.Mvvm.UserControls
                     TimeSpanFormat1 = null;
                     TimeSpanFormat2 = null;
                     FontFamily = null;
-                    Canvas?.Clear();
-                    Canvas = null;
+                    //Canvas?.Clear();
+                    //Canvas = null;
+                    //GC.Collect();
+                    //GC.WaitForPendingFinalizers();
+                    //GC.Collect();
+                    //Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.SystemIdle);
+                    //Dispatcher.Run();
                 }
 
                 // TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、下のファイナライザーをオーバーライドします。
