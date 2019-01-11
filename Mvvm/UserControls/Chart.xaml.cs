@@ -183,19 +183,24 @@ namespace WpfChartV1.Mvvm.UserControls
         private static void OnItemsChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             var c = sender as Chart;
+            Console.WriteLine($"{DateTime.Now.ToString("ss.fffff")}: OnItemsChanged ****************************************************************************************************");
             if (c != null) c.Draw().ConfigureAwait(false);
         }
 
         /// <summary>
         /// ｲﾒｰｼﾞを描写します。
         /// </summary>
-        private async Task Draw()
+        public async Task Draw()
         {
             if (WpfUtil.IsDesignMode())
             {
                 return;
             }
             if (Items == null || !Items.Any())
+            {
+                return;
+            }
+            if (ActualHeight <= 0 || ActualWidth <= 0)
             {
                 return;
             }
@@ -241,6 +246,14 @@ namespace WpfChartV1.Mvvm.UserControls
                     TaskScheduler.FromCurrentSynchronizationContext()
                 );
             }
+        }
+
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+        {
+            base.OnRenderSizeChanged(sizeInfo);
+            Console.WriteLine($"{DateTime.Now.ToString("ss.fffff")}: OnRenderSizeChanged");
+
+            //Draw().ConfigureAwait(false);
         }
     }
 

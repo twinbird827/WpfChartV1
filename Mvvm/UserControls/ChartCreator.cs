@@ -175,55 +175,64 @@ namespace WpfChartV1.Mvvm.UserControls
         /// </summary>
         internal ImageSource DrawCanvas()
         {
-            // 内部変数の初期化
-            Initialize();
-
-            // ｷｬﾝﾊﾞｽの大きさ決定
-            var dpi = WpfUtil.GetDpi(Orientation.Horizontal);
-            var Canvas = new RenderTargetBitmap((int)CanvasWidth, (int)CanvasHeight, dpi, dpi, PixelFormats.Default);
-
-            // ﾚﾝﾀﾞｰ作成
-            var dv = new DrawingVisual();
-
-            using (var dc = dv.RenderOpen())
+            try
             {
-                // ｸﾞﾗﾌ表示領域を原点にする。
-                dc.PushTransform(new TranslateTransform(OtherThanCanvas.Left, OtherThanCanvas.Top));
+                // 内部変数の初期化
+                Initialize();
 
-                // X軸の表題を描写
-                DrawXAxis(dc);
+                // ｷｬﾝﾊﾞｽの大きさ決定
+                var dpi = WpfUtil.GetDpi(Orientation.Horizontal);
+                var Canvas = new RenderTargetBitmap((int)CanvasWidth, (int)CanvasHeight, dpi, dpi, PixelFormats.Default);
 
-                // Y軸の表題を描写
-                DrawYAxis(dc);
+                // ﾚﾝﾀﾞｰ作成
+                var dv = new DrawingVisual();
 
-                // 目盛りを描写
-                DrawScale(dc);
-
-                // 折れ線ｸﾞﾗﾌ描写のため、左下を原点にする。
-                dc.PushTransform(new ScaleTransform() { CenterY = GraphHeight / 2, ScaleY = -1 });
-
-                //ﾌﾚｰﾑからはみ出た描写を切り捨てる設定を追加
-                dc.PushClip(new RectangleGeometry(new Rect(0, 0, GraphWidth, GraphHeight)));
-
-                // 折れ線ｸﾞﾗﾌ描写
-                foreach (var item in Items)
+                using (var dc = dv.RenderOpen())
                 {
-                    item.DrawSeries(this, dc);
+                    // ｸﾞﾗﾌ表示領域を原点にする。
+                    dc.PushTransform(new TranslateTransform(OtherThanCanvas.Left, OtherThanCanvas.Top));
+
+                    // X軸の表題を描写
+                    DrawXAxis(dc);
+
+                    // Y軸の表題を描写
+                    DrawYAxis(dc);
+
+                    // 目盛りを描写
+                    DrawScale(dc);
+
+                    // 折れ線ｸﾞﾗﾌ描写のため、左下を原点にする。
+                    dc.PushTransform(new ScaleTransform() { CenterY = GraphHeight / 2, ScaleY = -1 });
+
+                    //ﾌﾚｰﾑからはみ出た描写を切り捨てる設定を追加
+                    dc.PushClip(new RectangleGeometry(new Rect(0, 0, GraphWidth, GraphHeight)));
+
+                    // 折れ線ｸﾞﾗﾌ描写
+                    foreach (var item in Items)
+                    {
+                        item.DrawSeries(this, dc);
+                    }
+
+                    // 左下原点、はみ出し設定解除
+                    dc.Pop();
+                    dc.Pop();
+
+                    // ﾌﾚｰﾑ描写
+                    DrawFrame(dc);
                 }
 
-                // 左下原点、はみ出し設定解除
-                dc.Pop();
-                dc.Pop();
+                // ｱﾝﾁｴｲﾘｱｽ解除してｷｬﾝﾊﾞｽにﾚﾝﾀﾞｰ
+                Canvas.Render(Util.SetRenderOptions(dv));
+                if (Canvas.CanFreeze) Canvas.Freeze();
 
-                // ﾌﾚｰﾑ描写
-                DrawFrame(dc);
+                return ConvertToBitmap(Canvas);
             }
-
-            // ｱﾝﾁｴｲﾘｱｽ解除してｷｬﾝﾊﾞｽにﾚﾝﾀﾞｰ
-            Canvas.Render(Util.SetRenderOptions(dv));
-            if (Canvas.CanFreeze) Canvas.Freeze();
-
-            return ConvertToBitmap(Canvas);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Chart Create Exception: {DateTime.Now.ToString("ss.fff")}");
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
         }
 
         /// <summary>
