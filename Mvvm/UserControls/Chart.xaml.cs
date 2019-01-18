@@ -183,7 +183,6 @@ namespace WpfChartV1.Mvvm.UserControls
         private static void OnItemsChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             var c = sender as Chart;
-            Console.WriteLine($"{DateTime.Now.ToString("ss.fffff")}: OnItemsChanged ****************************************************************************************************");
             if (c != null) c.Draw().ConfigureAwait(false);
         }
 
@@ -247,14 +246,5 @@ namespace WpfChartV1.Mvvm.UserControls
                 );
             }
         }
-
-        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
-        {
-            base.OnRenderSizeChanged(sizeInfo);
-            Console.WriteLine($"{DateTime.Now.ToString("ss.fffff")}: OnRenderSizeChanged");
-
-            //Draw().ConfigureAwait(false);
-        }
     }
-
 }
