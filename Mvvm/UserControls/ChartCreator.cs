@@ -225,7 +225,7 @@ namespace WpfChartV1.Mvvm.UserControls
                 Canvas.Render(Util.SetRenderOptions(dv));
                 if (Canvas.CanFreeze) Canvas.Freeze();
 
-                return ConvertToBitmap(Canvas);
+                return Canvas;
             }
             catch (Exception ex)
             {
@@ -250,11 +250,11 @@ namespace WpfChartV1.Mvvm.UserControls
                     : Util.GetScaleStrings(TimeSpan.FromSeconds(0), EndTimeX - BeginTimeX, ScaleSplitCountX, TimeSpanFormat1, TimeSpanFormat2)
                 )
                 .Select(s => GetFormattedText(s));
-
+            
             // ｸﾞﾗﾌ以外の領域
             OtherThanCanvas.Top = ft.Height / 2;                                                    // 上=目盛り文字の半分
             OtherThanCanvas.Left = Items.FirstOrDefault().GetHeaderWidth(this) - ScaleLineLength;   // 左=最初のY軸目盛り幅                  TODO 多軸表示対応 TODO Itemsが無い場合の考慮
-            OtherThanCanvas.Right = HeaderXStrings.Last().Width / 2;                                // 右=最後のX軸目盛り文字の半分          TODO 多軸表示対応
+            OtherThanCanvas.Right = HeaderXStrings.Last().Width / 2 + 2;                            // 右=最後のX軸目盛り文字の半分          TODO 多軸表示対応
             OtherThanCanvas.Bottom = HeaderXStrings.Select(s => s.Height).Max() + ScaleLineLength;  // 下=X軸目盛り高さの最大値＋目盛り線
 
             // ｸﾞﾗﾌ領域の大きさ
@@ -262,14 +262,14 @@ namespace WpfChartV1.Mvvm.UserControls
             GraphWidth = CanvasWidth - OtherThanCanvas.Left - OtherThanCanvas.Right;
 
             // ｸﾞﾗﾌ領域の幅でﾃﾞｰﾀ点数を間引く
-            //Items.AsParallel()
-            //    .ForAll(item => item.ThinningOut(GraphWidth)
-            //);
-            Items.Select(item =>
-            {
-                item.ThinningOut(GraphWidth);
-                return item;
-            }).ToArray();
+            Items.AsParallel()
+                .ForAll(item => item.ThinningOut(GraphWidth)
+            );
+            //Items.Select(item =>
+            //{
+            //    item.ThinningOut(GraphWidth);
+            //    return item;
+            //}).ToArray();
 
             //ｸﾞﾗﾌ内のX軸倍率
             ZoomRatioX = GraphWidth / (EndTimeX - BeginTimeX).Ticks;
@@ -344,31 +344,49 @@ namespace WpfChartV1.Mvvm.UserControls
             //        );
             //    });
 
-            Enumerable.Range(0, ScaleSplitCountX)
-                .Select(i =>
-                {
-                    var x = GraphWidth / ScaleSplitCountX * i;
-                    dc.DrawLine(
-                        pen,
-                        new Point(x, 0),
-                        new Point(x, GraphHeight)
-                    );
-                    return i;
-                })
-                .ToArray();
+            foreach (var i in Enumerable.Range(0, ScaleSplitCountX))
+            {
+                var x = GraphWidth / ScaleSplitCountX * i;
+                dc.DrawLine(
+                    pen,
+                    new Point(x, 0),
+                    new Point(x, GraphHeight)
+                );
+            }
+            foreach (var i in Enumerable.Range(0, ScaleSplitCountY))
+            {
+                var y = GraphHeight / ScaleSplitCountY * i;
+                dc.DrawLine(
+                    pen,
+                    new Point(0, y),
+                    new Point(GraphWidth, y)
+                );
+            }
+            //Enumerable.Range(0, ScaleSplitCountX)
+            //    .Select(i =>
+            //    {
+            //        var x = GraphWidth / ScaleSplitCountX * i;
+            //        dc.DrawLine(
+            //            pen,
+            //            new Point(x, 0),
+            //            new Point(x, GraphHeight)
+            //        );
+            //        return i;
+            //    })
+            //    .ToArray();
 
-            Enumerable.Range(0, ScaleSplitCountY)
-                .Select(i =>
-                {
-                    var y = GraphHeight / ScaleSplitCountY * i;
-                    dc.DrawLine(
-                        pen,
-                        new Point(0, y),
-                        new Point(GraphWidth, y)
-                    );
-                    return i;
-                })
-                .ToArray();
+            //Enumerable.Range(0, ScaleSplitCountY)
+            //    .Select(i =>
+            //    {
+            //        var y = GraphHeight / ScaleSplitCountY * i;
+            //        dc.DrawLine(
+            //            pen,
+            //            new Point(0, y),
+            //            new Point(GraphWidth, y)
+            //        );
+            //        return i;
+            //    })
+            //    .ToArray();
         }
 
         /// <summary>
@@ -435,7 +453,11 @@ namespace WpfChartV1.Mvvm.UserControls
                 if (disposing)
                 {
                     Items.OfType<LineSeries>().AsParallel()
-                        .ForAll(i => i.Lines = null);
+                        .ForAll(i =>
+                        {
+                            i.Lines = null;
+                            i.Lines = new Line[] { };
+                        });
                     // TODO: マネージド状態を破棄します (マネージド オブジェクト)。
                     DateTimeFormat1 = null;
                     DateTimeFormat2 = null;
@@ -445,8 +467,6 @@ namespace WpfChartV1.Mvvm.UserControls
                     TimeSpanFormat1 = null;
                     TimeSpanFormat2 = null;
                     FontFamily = null;
-                    //Canvas?.Clear();
-                    //Canvas = null;
                     //GC.Collect();
                     //GC.WaitForPendingFinalizers();
                     //GC.Collect();

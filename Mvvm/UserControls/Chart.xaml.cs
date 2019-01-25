@@ -34,6 +34,17 @@ namespace WpfChartV1.Mvvm.UserControls
             InitializeComponent();
         }
 
+        protected override void OnInitialized(EventArgs e)
+        {
+            base.OnInitialized(e);
+
+            // 最初の描画が終了後、Draw を呼ぶ
+            Dispatcher.BeginInvoke(
+                new Action(async () => await Draw()),
+                DispatcherPriority.Loaded
+            );
+        }
+
         // ****************************************************************************************************
         // 公開ﾌﾟﾛﾊﾟﾃｨ定義
         // ****************************************************************************************************
@@ -164,7 +175,13 @@ namespace WpfChartV1.Mvvm.UserControls
         public IEnumerable<Series> Items
         {
             get { return (IEnumerable<Series>)GetValue(ItemsProperty); }
-            set { SetValue(ItemsProperty, value); }
+            set
+            {
+                Items?.OfType<LineSeries>().AsParallel()
+                    .ForAll(i => i.Lines = null);
+
+                SetValue(ItemsProperty, value);
+            }
         }
 
         public static readonly DependencyProperty ItemsProperty =
@@ -182,6 +199,7 @@ namespace WpfChartV1.Mvvm.UserControls
         /// </summary>
         private static void OnItemsChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            Console.WriteLine("OnItemsChanged");
             var c = sender as Chart;
             if (c != null) c.Draw().ConfigureAwait(false);
         }
@@ -197,12 +215,12 @@ namespace WpfChartV1.Mvvm.UserControls
             }
             if (Items == null || !Items.Any())
             {
-                return;
             }
             if (ActualHeight <= 0 || ActualWidth <= 0)
             {
                 return;
             }
+            Console.WriteLine("OnItemsChanged Draw");
 
             // ﾁｬｰﾄﾊﾟﾗﾒｰﾀに必要なﾊﾟﾗﾒｰﾀはUIﾊﾟﾗﾒｰﾀも必要なのでｶﾚﾝﾄｽﾚｯﾄﾞで作成
             using (ChartCreator param = new ChartCreator()
@@ -230,20 +248,20 @@ namespace WpfChartV1.Mvvm.UserControls
                 FontWeight = this.FontWeight,
             })
             {
-                //baseImage.Source = param.DrawCanvas();
-                await Task.Run(() =>
-                {
-                    // ｲﾒｰｼﾞはﾊﾞｯｸｸﾞﾗｳﾝﾄﾞで作成
-                    return param.DrawCanvas();
-                })
-                .ContinueWith(
-                    image =>
-                    {
-                        baseImage.Source = null;
-                        baseImage.Source = image.Result;
-                    },
-                    TaskScheduler.FromCurrentSynchronizationContext()
-                );
+                baseImage.Source = param.DrawCanvas();
+                //await Task.Run(() =>
+                //{
+                //    // ｲﾒｰｼﾞはﾊﾞｯｸｸﾞﾗｳﾝﾄﾞで作成
+                //    return param.DrawCanvas();
+                //})
+                //.ContinueWith(
+                //    image =>
+                //    {
+                //        baseImage.Source = null;
+                //        baseImage.Source = image.Result;
+                //    },
+                //    TaskScheduler.FromCurrentSynchronizationContext()
+                //);
             }
         }
     }

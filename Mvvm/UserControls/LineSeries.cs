@@ -14,7 +14,7 @@ namespace WpfChartV1.Mvvm.UserControls
         /// <summary>
         /// 線を繋ぐ頂点
         /// </summary>
-        public IEnumerable<Line> Lines { get; set; }
+        public Line[] Lines { get; set; }
 
         private PathFigure CreateLine(IEnumerable<Line> lines, ChartCreator c, double zY, double zX)
         {
@@ -27,18 +27,23 @@ namespace WpfChartV1.Mvvm.UserControls
 
         internal protected override void ThinningOut(double after)
         {
-            var lineCount = Lines.Count();
+            var lineCount = Lines.Length;
             var afterCount = after * 3 / 2;
             if (afterCount < lineCount)
             {
-                var tmp = Lines;
-                Lines = Enumerable.Range(0, (int)afterCount)
+                //var tmp = Lines;
+                //Lines = Enumerable.Range(0, (int)afterCount)
+                //    .Select(i => (int)Math.Ceiling(i * lineCount / afterCount))
+                //    .Select(i => tmp.ElementAt(i));
+                var tmp = Enumerable.Range(0, (int)afterCount)
                     .Select(i => (int)Math.Ceiling(i * lineCount / afterCount))
-                    .Select(i => tmp.ElementAt(i));
+                    .Select(i => Lines[i])
+                    .ToArray();
+                Lines = tmp;
             }
             else
             {
-                Lines = Lines;
+                //Lines = Lines;
             }
             //var lineCount = Lines.Count();
             //var afterCount = after * 3 / 2;
