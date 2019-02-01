@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -249,7 +250,16 @@ namespace WpfChartV1.Mvvm.UserControls
                 FontWeight = this.FontWeight,
             })
             {
-                baseImage.Source = param.DrawCanvas();
+                var tcs = new TaskCompletionSource<ImageSource>();
+                var dis = await CreateBackgroundDispatcherAsync();
+
+                await dis.InvokeAsync(() =>
+                {
+                    tcs.SetResult(param.DrawCanvas());
+                });
+                baseImage.Source = await tcs.Task;
+                dis.InvokeShutdown();
+
                 //await Task.Run(() =>
                 //{
                 //    // ｲﾒｰｼﾞはﾊﾞｯｸｸﾞﾗｳﾝﾄﾞで作成
@@ -264,9 +274,33 @@ namespace WpfChartV1.Mvvm.UserControls
                 //    TaskScheduler.FromCurrentSynchronizationContext()
                 //);
             }
-
+            //ChartCreatorEx cc = ChartCreatorEx.CreateInstance(this);
+            //baseImage.Source = cc.CreateImage();
             Console.WriteLine($"chart {Name}: {sp.Elapsed}");
 
+        }
+
+        public static Dispatcher BackgroundDispatcher => CreateBackgroundDispatcherAsync().Result;
+        static Task<Dispatcher> CreateBackgroundDispatcherAsync()
+        {
+            var tcs = new TaskCompletionSource<Dispatcher>();
+
+            var th = new Thread(() => {
+                var d = Dispatcher.CurrentDispatcher;
+                tcs.SetResult(d);
+                //Application.Current.Dispatcher.InvokeAsync(() => {
+                //    Application.Current.Exit += (sender, e) =>
+                //    {
+                //        d.InvokeShutdown();
+                //    };
+                //});
+                Dispatcher.Run();
+            });
+            th.IsBackground = true;
+            th.SetApartmentState(ApartmentState.STA);
+            th.Start();
+
+            return tcs.Task;
         }
     }
 }

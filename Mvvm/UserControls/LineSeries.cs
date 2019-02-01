@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using WpfChartV1.Common;
 
 namespace WpfChartV1.Mvvm.UserControls
@@ -88,6 +89,33 @@ namespace WpfChartV1.Mvvm.UserControls
             {
                 return new PathGeometry();
             }
+        }
+
+        protected override void CreateGeometry(ChartCreatorEx c, WriteableBitmap dc, Color color)
+        {
+            // Y座標の倍率
+            var zY = c.GraphHeight / (Max - Min);
+            var zX = c.ZoomRatioX;
+
+            if (Lines != null && Lines.Any())
+            {
+                Line before = null;
+                foreach (var line in Lines)
+                {
+                    if (before != null)
+                    {
+                        dc.DrawLine(c.OtherThanCanvas, CreatePoint(c, before, zY, zX), CreatePoint(c, line, zY, zX), color);
+                    }
+                    before = line;
+                }
+            }
+        }
+
+        private Point CreatePoint(ChartCreatorEx c, Line line, double zY, double zX)
+        {
+            var x = (line.X - c.BeginTimeX).Ticks * zX;
+            var y = (line.Y - Min) * zY;
+            return new Point(x, y);
         }
     }
 }

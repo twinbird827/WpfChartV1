@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,13 +8,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using WpfChartV1.Common;
 using WpfUtilV2.Common;
 
 namespace WpfChartV1.Mvvm.UserControls
 {
-    public class ChartCreator : IDisposable
+    public class ChartCreatorEx
     {
         /// <summary>
         /// ﾀｲﾄﾙ
@@ -165,19 +163,35 @@ namespace WpfChartV1.Mvvm.UserControls
         /// </summary>
         internal double FontSize { get; set; }
 
-        ///// <summary>
-        ///// ｷｬﾝﾊﾞｽを取得、または設定します。
-        ///// </summary>
-        //internal RenderTargetBitmap Canvas { get; set; }
+        public static ChartCreatorEx CreateInstance(Chart c)
+        {
+            return new ChartCreatorEx()
+            {
+                Title = c.Name,
+                BeginTimeX = c.BeginTimeX,
+                CanvasHeight = c.ActualHeight,
+                CanvasWidth = c.ActualWidth,
+                DateTimeFormat1 = c.DateTimeFormat1,
+                DateTimeFormat2 = c.DateTimeFormat2,
+                EndTimeX = c.EndTimeX,
+                FreezeForeground = c.Foreground,
+                FreezePen = new Pen(c.Foreground, 1),
+                Items = c.Items,
+                ScaleLineLength = c.ScaleLineLength,
+                ScaleSplitCountX = c.ScaleSplitCountX,
+                ScaleSplitCountY = c.ScaleSplitCountY,
+                ScaleType = c.ScaleType,
+                TimeSpanFormat1 = c.TimeSpanFormat1,
+                TimeSpanFormat2 = c.TimeSpanFormat2,
+                FontFamily = c.FontFamily,
+                FontSize = c.FontSize,
+                FontStretch = c.FontStretch,
+                FontStyle = c.FontStyle,
+                FontWeight = c.FontWeight,
+            };
+        }
 
-        // ****************************************************************************************************
-        // ｸﾞﾗﾌ描写
-        // ****************************************************************************************************
-
-        /// <summary>
-        /// ｷｬﾝﾊﾞｽを作成します。
-        /// </summary>
-        internal ImageSource DrawCanvas()
+        public ImageSource CreateImage()
         {
             try
             {
@@ -186,47 +200,67 @@ namespace WpfChartV1.Mvvm.UserControls
 
                 // ｷｬﾝﾊﾞｽの大きさ決定
                 var dpi = WpfUtil.GetDpi(Orientation.Horizontal);
-                var Canvas = new RenderTargetBitmap((int)CanvasWidth, (int)CanvasHeight, dpi, dpi, PixelFormats.Default);
+                //var Canvas = new RenderTargetBitmap((int)CanvasWidth, (int)CanvasHeight, dpi, dpi, PixelFormats.Default);
+                var Canvas = new WriteableBitmap((int)CanvasWidth, (int)CanvasHeight, dpi, dpi, PixelFormats.Pbgra32, null);
 
-                // ﾚﾝﾀﾞｰ作成
-                var dv = new DrawingVisual();
-
-                using (var dc = dv.RenderOpen())
+                using (var context = Canvas.GetBitmapContext())
                 {
-                    // ｸﾞﾗﾌ表示領域を原点にする。
-                    dc.PushTransform(new TranslateTransform(OtherThanCanvas.Left, OtherThanCanvas.Top));
-
                     // X軸の表題を描写
-                    DrawXAxis(dc);
+                    DrawXAxis(Canvas);
 
                     // Y軸の表題を描写
-                    DrawYAxis(dc);
+                    DrawYAxis(Canvas);
 
                     // 目盛りを描写
-                    DrawScale(dc);
+                    DrawScale(Canvas);
 
                     // ﾌﾚｰﾑ描写
-                    DrawFrame(dc);
-
-                    // 折れ線ｸﾞﾗﾌ描写のため、左下を原点にする。
-                    dc.PushTransform(new ScaleTransform() { CenterY = GraphHeight / 2, ScaleY = -1 });
-
-                    //ﾌﾚｰﾑからはみ出た描写を切り捨てる設定を追加
-                    dc.PushClip(new RectangleGeometry(new Rect(0, 0, GraphWidth, GraphHeight)));
+                    DrawFrame(Canvas);
 
                     // 折れ線ｸﾞﾗﾌ描写
                     foreach (var item in Items)
                     {
-                        item.DrawSeries(this, dc);
+                        item.DrawSeries(this, Canvas);
                     }
 
-                    // 左下原点、はみ出し設定解除
-                    dc.Pop();
-                    dc.Pop();
                 }
+                //// ﾚﾝﾀﾞｰ作成
+                //var dv = new DrawingVisual();
 
-                // ｱﾝﾁｴｲﾘｱｽ解除してｷｬﾝﾊﾞｽにﾚﾝﾀﾞｰ
-                Canvas.Render(Util.SetRenderOptions(dv));
+                //using (var dc = dv.RenderOpen())
+                //{
+                //    //// ｸﾞﾗﾌ表示領域を原点にする。
+                //    //dc.PushTransform(new TranslateTransform(OtherThanCanvas.Left, OtherThanCanvas.Top));
+
+                //    //// X軸の表題を描写
+                //    //DrawXAxis(dc);
+
+                //    // Y軸の表題を描写
+                //    DrawYAxis(dc);
+
+                //    // 目盛りを描写
+                //    DrawScale(dc);
+
+                //    // ﾌﾚｰﾑ描写
+                //    DrawFrame(dc);
+
+                //    // 折れ線ｸﾞﾗﾌ描写のため、左下を原点にする。
+                //    dc.PushTransform(new ScaleTransform() { CenterY = GraphHeight / 2, ScaleY = -1 });
+
+                //    //ﾌﾚｰﾑからはみ出た描写を切り捨てる設定を追加
+                //    dc.PushClip(new RectangleGeometry(new Rect(0, 0, GraphWidth, GraphHeight)));
+
+                //    // 折れ線ｸﾞﾗﾌ描写
+                //    foreach (var item in Items)
+                //    {
+                //        item.DrawSeries(this, dc);
+                //    }
+
+                //    // 左下原点、はみ出し設定解除
+                //    dc.Pop();
+                //    dc.Pop();
+                //}
+
                 if (Canvas.CanFreeze) Canvas.Freeze();
 
                 return Canvas;
@@ -237,6 +271,7 @@ namespace WpfChartV1.Mvvm.UserControls
                 Console.WriteLine(ex.ToString());
                 throw;
             }
+
         }
 
         /// <summary>
@@ -254,7 +289,7 @@ namespace WpfChartV1.Mvvm.UserControls
                     : Util.GetScaleStrings(TimeSpan.FromSeconds(0), EndTimeX - BeginTimeX, ScaleSplitCountX, TimeSpanFormat1, TimeSpanFormat2)
                 )
                 .Select(s => GetFormattedText(s));
-            
+
             // ｸﾞﾗﾌ以外の領域
             OtherThanCanvas.Top = ft.Height / 2;                                                    // 上=目盛り文字の半分
             OtherThanCanvas.Left = Items.FirstOrDefault().GetHeaderWidth(this) - ScaleLineLength;   // 左=最初のY軸目盛り幅                  TODO 多軸表示対応 TODO Itemsが無い場合の考慮
@@ -284,7 +319,7 @@ namespace WpfChartV1.Mvvm.UserControls
         /// X軸を描写します。
         /// </summary>
         /// <param name="dc">ﾚﾝﾀﾞｰ</param>
-        private void DrawXAxis(DrawingContext dc)
+        private void DrawXAxis(WriteableBitmap dc)
         {
             HeaderXStrings
                 .Select((s, index) =>
@@ -292,14 +327,15 @@ namespace WpfChartV1.Mvvm.UserControls
                     var x = GraphWidth / ScaleSplitCountX * index;
                     var y = GraphHeight + ScaleLineLength;
 
-                    // 文字を描写
-                    dc.DrawText(s, new Point(x - s.Width / 2, y));
+                    //// 文字を描写
+                    //dc.DrawText(s, new Point(x - s.Width / 2, y));
 
                     // 目盛り線を描写
                     dc.DrawLine(
-                        FreezePen,
+                        OtherThanCanvas,
                         new Point(x, GraphHeight),
-                        new Point(x, GraphHeight + ScaleLineLength)
+                        new Point(x, GraphHeight + ScaleLineLength),
+                        ((SolidColorBrush)FreezePen.Brush).Color
                     );
                     return s;
                 })
@@ -310,107 +346,52 @@ namespace WpfChartV1.Mvvm.UserControls
         /// Y軸を描写します。
         /// </summary>
         /// <param name="dc">ﾚﾝﾀﾞｰ</param>
-        private void DrawYAxis(DrawingContext dc)
+        private void DrawYAxis(WriteableBitmap dc)
         {
-            Items
-                .First()
-                .DrawHeader(this, dc, 0);
+            //Items
+            //    .First()
+            //    .DrawHeader(this, dc, 0);
         }
 
         /// <summary>
         /// 目盛りを描写します。
         /// </summary>
         /// <param name="dc">ﾚﾝﾀﾞｰ</param>
-        private void DrawScale(DrawingContext dc)
+        private void DrawScale(WriteableBitmap dc)
         {
             var pen = FreezePen.CloneCurrentValue();
             pen.DashStyle = DashStyles.Dot;
             if (pen.CanFreeze) pen.Freeze();
 
-            //Enumerable.Range(0, ScaleSplitCountX).AsParallel()
-            //    .ForAll(i =>
-            //    {
-            //        var x = GraphWidth / ScaleSplitCountX * i;
-            //        dc.DrawLine(
-            //            pen,
-            //            new Point(x, 0),
-            //            new Point(x, GraphHeight)
-            //        );
-            //    });
-
-            //Enumerable.Range(0, ScaleSplitCountY).AsParallel()
-            //    .ForAll(i =>
-            //    {
-            //        var y = GraphHeight / ScaleSplitCountY * i;
-            //        dc.DrawLine(
-            //            pen,
-            //            new Point(0, y),
-            //            new Point(GraphWidth, y)
-            //        );
-            //    });
-
             foreach (var i in Enumerable.Range(0, ScaleSplitCountX))
             {
                 var x = GraphWidth / ScaleSplitCountX * i;
                 dc.DrawLine(
-                    pen,
+                    OtherThanCanvas,
                     new Point(x, 0),
-                    new Point(x, GraphHeight)
+                    new Point(x, GraphHeight),
+                    ((SolidColorBrush)FreezePen.Brush).Color
                 );
             }
             foreach (var i in Enumerable.Range(0, ScaleSplitCountY))
             {
                 var y = GraphHeight / ScaleSplitCountY * i;
                 dc.DrawLine(
-                    pen,
+                    OtherThanCanvas,
                     new Point(0, y),
-                    new Point(GraphWidth, y)
+                    new Point(GraphWidth, y),
+                    ((SolidColorBrush)FreezePen.Brush).Color
                 );
             }
-            //Enumerable.Range(0, ScaleSplitCountX)
-            //    .Select(i =>
-            //    {
-            //        var x = GraphWidth / ScaleSplitCountX * i;
-            //        dc.DrawLine(
-            //            pen,
-            //            new Point(x, 0),
-            //            new Point(x, GraphHeight)
-            //        );
-            //        return i;
-            //    })
-            //    .ToArray();
-
-            //Enumerable.Range(0, ScaleSplitCountY)
-            //    .Select(i =>
-            //    {
-            //        var y = GraphHeight / ScaleSplitCountY * i;
-            //        dc.DrawLine(
-            //            pen,
-            //            new Point(0, y),
-            //            new Point(GraphWidth, y)
-            //        );
-            //        return i;
-            //    })
-            //    .ToArray();
         }
 
         /// <summary>
         /// 枠を描写します。
         /// </summary>
         /// <param name="dc">ﾚﾝﾀﾞｰ</param>
-        private void DrawFrame(DrawingContext dc)
+        private void DrawFrame(WriteableBitmap dc)
         {
-            dc.DrawGeometry(null, FreezePen, new PathGeometry(new[]
-            {
-                Util.CreateLine(new Point[]
-                {
-                    new Point(0, 0),
-                    new Point(0, GraphHeight),
-                    new Point(GraphWidth, GraphHeight),
-                    new Point(GraphWidth, 0),
-                    new Point(0, 0)
-                })
-            }));
+            dc.DrawRectangle(OtherThanCanvas, new Point(0, 0), new Point(GraphWidth, GraphHeight), ((SolidColorBrush)FreezePen.Brush).Color);
         }
 
         /// <summary>
@@ -448,59 +429,42 @@ namespace WpfChartV1.Mvvm.UserControls
             }
         }
 
-        #region IDisposable Support
-        private bool disposedValue = false; // 重複する呼び出しを検出するには
-
-        protected virtual void Dispose(bool disposing)
+    }
+    public static class Extensions
+    {
+        public static void DrawLine(this WriteableBitmap context, Thickness tl, Point begin, Point end, Color color)
         {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    Items.OfType<LineSeries>().AsParallel()
-                        .ForAll(i =>
-                        {
-                            i.Lines = null;
-                            i.Lines = new Line[] { };
-                        });
-                    // TODO: マネージド状態を破棄します (マネージド オブジェクト)。
-                    DateTimeFormat1 = null;
-                    DateTimeFormat2 = null;
-                    FreezeForeground = null;
-                    FreezePen = null;
-                    Items = null;
-                    TimeSpanFormat1 = null;
-                    TimeSpanFormat2 = null;
-                    FontFamily = null;
-                    //GC.Collect();
-                    //GC.WaitForPendingFinalizers();
-                    //GC.Collect();
-                    //Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.SystemIdle);
-                    //Dispatcher.Run();
-                }
-
-                // TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、下のファイナライザーをオーバーライドします。
-                // TODO: 大きなフィールドを null に設定します。
-
-                disposedValue = true;
-            }
+            context.DrawLine(new Point(begin.X + tl.Left, begin.Y + tl.Top), new Point(end.X + tl.Left, end.Y + tl.Top), color);
+            //WriteableBitmapExtensions.DrawLineAa(context, context.Width, context.Height, (int)begin.X, (int)begin.Y, (int)end.X, (int)end.Y, Color2Int(color));
         }
 
-        // TODO: 上の Dispose(bool disposing) にアンマネージド リソースを解放するコードが含まれる場合にのみ、ファイナライザーをオーバーライドします。
-        // ~ChartParameter() {
-        //   // このコードを変更しないでください。クリーンアップ コードを上の Dispose(bool disposing) に記述します。
-        //   Dispose(false);
-        // }
-
-        // このコードは、破棄可能なパターンを正しく実装できるように追加されました。
-        public void Dispose()
+        public static void DrawLine(this WriteableBitmap context, Point begin, Point end, Color color)
         {
-            // このコードを変更しないでください。クリーンアップ コードを上の Dispose(bool disposing) に記述します。
-            Dispose(true);
-            // TODO: 上のファイナライザーがオーバーライドされる場合は、次の行のコメントを解除してください。
-            // GC.SuppressFinalize(this);
+            WriteableBitmapExtensions.DrawLine(context, (int)begin.X, (int)begin.Y, (int)end.X, (int)end.Y, Color2Int(color));
+            //WriteableBitmapExtensions.DrawLineAa(context, context.Width, context.Height, (int)begin.X, (int)begin.Y, (int)end.X, (int)end.Y, Color2Int(color));
         }
-        #endregion
+
+        public static void DrawRectangle(this WriteableBitmap context, Thickness tl, Point begin, Point end, Color color)
+        {
+            context.DrawRectangle(new Point(begin.X + tl.Left, begin.Y + tl.Top), new Point(end.X + tl.Left, end.Y + tl.Top), color);
+        }
+        public static void DrawRectangle(this WriteableBitmap context, Point begin, Point end, Color color)
+        {
+            var p1 = begin;
+            var p2 = new Point(begin.X, end.Y);
+            var p3 = end;
+            var p4 = new Point(end.X, begin.Y);
+
+            context.DrawLine(p1, p2, color);
+            context.DrawLine(p2, p3, color);
+            context.DrawLine(p3, p4, color);
+            context.DrawLine(p4, p1, color);
+        }
+        private static int Color2Int(Color color)
+        {
+            return (int)((color.A << 24) | (color.R << 16) | (color.G << 8) | color.B);
+        }
 
     }
+
 }

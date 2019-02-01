@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using WpfChartV1.Common;
 
 namespace WpfChartV1.Mvvm.UserControls
@@ -34,7 +35,18 @@ namespace WpfChartV1.Mvvm.UserControls
         /// <summary>
         /// ｼﾘｰｽﾞのｸﾞﾗﾌ線の色を設定、または取得します。
         /// </summary>
-        public Brush Foreground { get; set; }
+        //public Brush Foreground { get; set; }
+
+        public Brush Foreground
+        {
+            get { return new SolidColorBrush(_FreezeForeground); }
+            set
+            {
+                var brush = value as SolidColorBrush;
+                _FreezeForeground = brush.Color;
+            }
+        }
+        private Color _FreezeForeground;
 
         /// <summary>
         /// ｼﾘｰｽﾞのｸﾞﾗﾌ線の太さを設定、または取得します。
@@ -106,6 +118,18 @@ namespace WpfChartV1.Mvvm.UserControls
             return titleWidth + memoriWidth + c.ScaleLineLength;
         }
 
+        internal virtual double GetHeaderWidth(ChartCreatorEx c)
+        {
+            // ﾀｲﾄﾙの幅(縦表記するので高さが幅になる)
+            var titleWidth = c.GetFormattedText(Title).Height;
+            // 目盛りの幅(目盛り表記の幅の中で最大値)
+            var memoriWidth = Util.GetScaleStrings(Min, Max, c.ScaleSplitCountY, Format)
+                .Select(s => c.GetFormattedText(s).Width)
+                .Max();
+            // 戻り値(ﾀｲﾄﾙの幅＋目盛りの幅＋目盛りの長さ)
+            return titleWidth + memoriWidth + c.ScaleLineLength;
+        }
+
         /// <summary>
         /// ｼﾘｰｽﾞのｸﾞﾗﾌを描写します。
         /// </summary>
@@ -113,8 +137,8 @@ namespace WpfChartV1.Mvvm.UserControls
         /// <param name="dc">ﾚﾝﾀﾞｰ</param>
         internal void DrawSeries(ChartCreator c, DrawingContext dc)
         {
-            var FreezeForeground = Foreground.CloneCurrentValue();
-            if (FreezeForeground.CanFreeze) FreezeForeground.Freeze();
+            
+            var FreezeForeground = Foreground;
             var FreezePen = new Pen(FreezeForeground, Thickness);
             if (FreezePen.CanFreeze) FreezePen.Freeze();
 
@@ -132,5 +156,22 @@ namespace WpfChartV1.Mvvm.UserControls
         /// </summary>
         /// <param name="c">ﾁｬｰﾄｲﾝｽﾀﾝｽ</param>
         protected abstract Geometry CreateGeometry(ChartCreator c);
+
+        /// <summary>
+        /// ｼﾘｰｽﾞのｸﾞﾗﾌを描写します。
+        /// </summary>
+        /// <param name="c">ﾁｬｰﾄｲﾝｽﾀﾝｽ</param>
+        /// <param name="dc">ﾚﾝﾀﾞｰ</param>
+        internal void DrawSeries(ChartCreatorEx c, WriteableBitmap dc)
+        {
+            CreateGeometry(c, dc, ((SolidColorBrush)Foreground).Color);
+        }
+
+        /// <summary>
+        /// ｼﾘｰｽﾞのｸﾞﾗﾌを作成します。
+        /// </summary>
+        /// <param name="c">ﾁｬｰﾄｲﾝｽﾀﾝｽ</param>
+        protected abstract void CreateGeometry(ChartCreatorEx c, WriteableBitmap dc, Color color);
+
     }
 }
