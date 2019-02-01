@@ -201,6 +201,9 @@ namespace WpfChartV1.Mvvm.UserControls
                     // 目盛りを描写
                     DrawScale(dc);
 
+                    // ﾌﾚｰﾑ描写
+                    DrawFrame(dc);
+
                     // 折れ線ｸﾞﾗﾌ描写のため、左下を原点にする。
                     dc.PushTransform(new ScaleTransform() { CenterY = GraphHeight / 2, ScaleY = -1 });
 
@@ -216,9 +219,6 @@ namespace WpfChartV1.Mvvm.UserControls
                     // 左下原点、はみ出し設定解除
                     dc.Pop();
                     dc.Pop();
-
-                    // ﾌﾚｰﾑ描写
-                    DrawFrame(dc);
                 }
 
                 // ｱﾝﾁｴｲﾘｱｽ解除してｷｬﾝﾊﾞｽにﾚﾝﾀﾞｰ
@@ -265,6 +265,7 @@ namespace WpfChartV1.Mvvm.UserControls
             Items.AsParallel()
                 .ForAll(item => item.ThinningOut(GraphWidth)
             );
+
             //Items.Select(item =>
             //{
             //    item.ThinningOut(GraphWidth);

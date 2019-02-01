@@ -20,7 +20,18 @@ namespace WpfChartV1.Mvvm.UserControls
         {
             // ﾗｲﾝを座標位置に変換
             var points = lines
-                .Select(line => new Point((line.X - c.BeginTimeX).Ticks * zX, (line.Y - Min) * zY));
+                .Select(line => 
+                {
+                    var x = (line.X - c.BeginTimeX).Ticks * zX;
+                    var y = (line.Y - Min) * zY;
+
+                    //y = y >= Max * zY
+                    //    ? y - 1
+                    //    : y <= Min * zY
+                    //    ? y + 1
+                    //    : y;
+                    return new Point(x, y);
+                });
 
             return Util.CreateLine(points);
         }
@@ -41,22 +52,6 @@ namespace WpfChartV1.Mvvm.UserControls
                     .ToArray();
                 Lines = tmp;
             }
-            else
-            {
-                //Lines = Lines;
-            }
-            //var lineCount = Lines.Count();
-            //var afterCount = after * 3 / 2;
-            //if (afterCount < lineCount)
-            //{
-            //    Lines = Enumerable.Range(0, (int)afterCount)
-            //        .Select(i => (int)Math.Ceiling(i * lineCount / afterCount))
-            //        .Select(i => Lines.ElementAt(i)).ToArray();
-            //}
-            //else
-            //{
-            //    Lines = Lines.ToArray();
-            //}
         }
 
         ///// <summary>

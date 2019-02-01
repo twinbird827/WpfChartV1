@@ -199,7 +199,6 @@ namespace WpfChartV1.Mvvm.UserControls
         /// </summary>
         private static void OnItemsChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            Console.WriteLine("OnItemsChanged");
             var c = sender as Chart;
             if (c != null) c.Draw().ConfigureAwait(false);
         }
@@ -215,12 +214,14 @@ namespace WpfChartV1.Mvvm.UserControls
             }
             if (Items == null || !Items.Any())
             {
+                return;
             }
             if (ActualHeight <= 0 || ActualWidth <= 0)
             {
                 return;
             }
-            Console.WriteLine("OnItemsChanged Draw");
+            Stopwatch sp = new Stopwatch();
+            sp.Start();
 
             // ﾁｬｰﾄﾊﾟﾗﾒｰﾀに必要なﾊﾟﾗﾒｰﾀはUIﾊﾟﾗﾒｰﾀも必要なのでｶﾚﾝﾄｽﾚｯﾄﾞで作成
             using (ChartCreator param = new ChartCreator()
@@ -263,6 +264,9 @@ namespace WpfChartV1.Mvvm.UserControls
                 //    TaskScheduler.FromCurrentSynchronizationContext()
                 //);
             }
+
+            Console.WriteLine($"chart {Name}: {sp.Elapsed}");
+
         }
     }
 }
