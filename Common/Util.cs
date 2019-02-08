@@ -5,18 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using WpfChartV1.Mvvm.UserControls;
+using WpfUtilV2.Common;
 
 namespace WpfChartV1.Common
 {
-    class Util
+    static class Util
     {
-        /// <summary>
-        /// 目盛りの凸部分の長さ
-        /// </summary>
-        internal const int ScaleLineLength = 5;
-
         /// <summary>
         /// 目盛りに表示する値を取得する
         /// </summary>
@@ -136,60 +134,19 @@ namespace WpfChartV1.Common
             );
         }
 
-        ///// <summary>
-        ///// 表題文字列を描写用書式ｵﾌﾞｼﾞｪｸﾄで取得する
-        ///// </summary>
-        ///// <param name="text">表題文字列</param>
-        ///// <param name="color">表題の色</param>
-        ///// <returns>描写用書式ｵﾌﾞｼﾞｪｸﾄ</returns>
-        //internal static FormattedText GetFormattedText(string text, Chart c, Brush brush)
-        //{
-        //    return new FormattedText(text,
-        //        new CultureInfo("ja-jp"),
-        //        FlowDirection.LeftToRight,
-        //        new Typeface(c.FontFamily, c.FontStyle, c.FontWeight, c.FontStretch),
-        //        c.FontSize,
-        //        brush
-        //    );
-        //}
-
-        ///// <summary>
-        ///// 表題文字列を描写用書式ｵﾌﾞｼﾞｪｸﾄで取得する
-        ///// </summary>
-        ///// <param name="text">表題文字列</param>
-        ///// <param name="color">表題の色</param>
-        ///// <returns>描写用書式ｵﾌﾞｼﾞｪｸﾄ</returns>
-        //internal static FormattedText GetFormattedText(string text, Chart c)
-        //{
-        //    return new FormattedText(text,
-        //        new CultureInfo("ja-jp"),
-        //        FlowDirection.LeftToRight,
-        //        new Typeface(c.FontFamily, c.FontStyle, c.FontWeight, c.FontStretch),
-        //        c.FontSize,
-        //        c.FreezeForeground
-        //    );
-        //}
-
-        internal static PathFigure CreateLine(IEnumerable<Point> points)
+        internal static WriteableBitmap CreateWriteableBitmap(int width, int height)
         {
-            // ﾊﾟｽを作成
-            return new PathFigure(
-                points.FirstOrDefault(),
-                points.Skip(1).Select(p => new LineSegment() { Point = p, IsSmoothJoin = true, IsStroked = true}),
-                false
-            );
+            var dpi = WpfUtil.GetDpi(Orientation.Horizontal);
+            return new WriteableBitmap(width, height, dpi, dpi, PixelFormats.Pbgra32, null);
         }
 
-
         /// <summary>
-        /// <code>DrawingVisual</code>に設定されている<code>Drawing</code>ｲﾝｽﾀﾝｽ全てのｱﾝﾁｴｲﾘｱｽを解除する
+        /// <code>DrawingGroup</code>のｱﾝﾁｴｲﾘｱｽを解除してFreezeを行います。
         /// </summary>
-        /// <param name="dv"><code>DwawingVisual</code></param>
-        /// <returns>ｱﾝﾁｴｲﾘｱｽを解除した<code>DrawingVisual</code></returns>
-        internal static DrawingVisual SetRenderOptions(DrawingVisual dv)
+        /// <param name="drawingGroup"><code>DrawingGroup</code></param>
+        /// <returns>処理後の<code>DrawingGroup</code></returns>
+        internal static DrawingGroup ReleaseAntialiasing(DrawingGroup drawingGroup)
         {
-            var drawingGroup = dv.Drawing;
-
             foreach (var d in GetDrawings(drawingGroup))
             {
                 if (!d.IsSealed)
@@ -199,14 +156,7 @@ namespace WpfChartV1.Common
                     d.Freeze();
                 }
             }
-
-            dv = new DrawingVisual();
-            using (DrawingContext ctx = dv.RenderOpen())
-            {
-                ctx.DrawDrawing(drawingGroup);
-            }
-            
-            return dv;
+            return drawingGroup;
         }
 
         /// <summary>

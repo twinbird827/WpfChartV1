@@ -48,12 +48,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\DrawingContextExtensions.cs" />
     <Compile Include="Common\Util.cs" />
+    <Compile Include="Common\WriteableBitmapExtensions.cs" />
     <Compile Include="Mvvm\UserControls\Chart.xaml.cs">
       <DependentUpon>Chart.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Mvvm\UserControls\ChartCreator.cs" />
-    <Compile Include="Mvvm\UserControls\ChartCreatorEx.cs" />
+    <Compile Include="Mvvm\UserControls\WriteableBitmapCreator.cs" />
     <Compile Include="Mvvm\UserControls\Line.cs" />
     <Compile Include="Mvvm\UserControls\LineSeries.cs" />
     <Compile Include="Mvvm\UserControls\ScaleType.cs" />

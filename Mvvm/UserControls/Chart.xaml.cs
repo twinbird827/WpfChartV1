@@ -33,6 +33,9 @@ namespace WpfChartV1.Mvvm.UserControls
         public Chart()
         {
             InitializeComponent();
+
+            Loaded += (sender, e) => LoadedCharts.Add(this);
+            Unloaded += (sender, e) => LoadedCharts.Remove(this);
         }
 
         protected override void OnInitialized(EventArgs e)
@@ -41,7 +44,7 @@ namespace WpfChartV1.Mvvm.UserControls
 
             // 最初の描画が終了後、Draw を呼ぶ
             Dispatcher.BeginInvoke(
-                new Action(async () => await Draw()),
+                new Action(() => Draw()),
                 DispatcherPriority.Loaded
             );
         }
@@ -171,6 +174,18 @@ namespace WpfChartV1.Mvvm.UserControls
             DependencyProperty.Register("DateTimeFormat2", typeof(string), typeof(Chart), new PropertyMetadata(default(string)));
 
         /// <summary>
+        /// X軸を表示するかどうかを取得、または設定します。
+        /// </summary>
+        public bool IsVisibleXHeader
+        {
+            get { return (bool)GetValue(IsVisibleXHeaderProperty); }
+            set { SetValue(IsVisibleXHeaderProperty, value); }
+        }
+
+        public static readonly DependencyProperty IsVisibleXHeaderProperty =
+            DependencyProperty.Register("IsVisibleXHeader", typeof(bool), typeof(Chart), new PropertyMetadata(default(bool)));
+
+        /// <summary>
         /// ｸﾞﾗﾌ表示用ﾃﾞｰﾀを取得、または設定します。
         /// </summary>
         public IEnumerable<Series> Items
@@ -188,8 +203,21 @@ namespace WpfChartV1.Mvvm.UserControls
         public static readonly DependencyProperty ItemsProperty =
             DependencyProperty.Register("Items", typeof(IEnumerable<Series>), typeof(Chart), 
                 new FrameworkPropertyMetadata(
-                    new PropertyChangedCallback(Chart.OnItemsChanged)
+                    new PropertyChangedCallback(OnItemsChanged)
                 ));
+
+        // ****************************************************************************************************
+        // 内部ﾌﾟﾛﾊﾟﾃｨ定義
+        // ****************************************************************************************************
+
+        /// <summary>
+        /// 最後に描写したｲﾒｰｼﾞｿｰｽ
+        /// </summary>
+        internal ImageSource LastRenderImage { get; set; }
+
+        internal bool IsMouseRightDown { get; set; } = false;
+
+        internal static List<Chart> LoadedCharts { get; set; } = new List<Chart>();
 
         // ****************************************************************************************************
         // 内部ﾒｿｯﾄﾞ定義
@@ -201,19 +229,19 @@ namespace WpfChartV1.Mvvm.UserControls
         private static void OnItemsChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             var c = sender as Chart;
-            if (c != null) c.Draw().ConfigureAwait(false);
+            if (c != null) c.Draw();
         }
 
         /// <summary>
         /// ｲﾒｰｼﾞを描写します。
         /// </summary>
-        public async Task Draw()
+        public void Draw()
         {
             if (WpfUtil.IsDesignMode())
             {
                 return;
             }
-            if (Items == null || !Items.Any())
+            if (Items == null)
             {
                 return;
             }
@@ -221,86 +249,47 @@ namespace WpfChartV1.Mvvm.UserControls
             {
                 return;
             }
-            Stopwatch sp = new Stopwatch();
-            sp.Start();
-
-            // ﾁｬｰﾄﾊﾟﾗﾒｰﾀに必要なﾊﾟﾗﾒｰﾀはUIﾊﾟﾗﾒｰﾀも必要なのでｶﾚﾝﾄｽﾚｯﾄﾞで作成
-            using (ChartCreator param = new ChartCreator()
+            if (IsMouseRightDown)
             {
-                Title = this.Name,
-                BeginTimeX = this.BeginTimeX,
-                CanvasHeight = this.ActualHeight,
-                CanvasWidth = this.ActualWidth,
-                DateTimeFormat1 = this.DateTimeFormat1,
-                DateTimeFormat2 = this.DateTimeFormat2,
-                EndTimeX = this.EndTimeX,
-                FreezeForeground = this.Foreground,
-                FreezePen = new Pen(Foreground, 1),
-                Items = this.Items,
-                ScaleLineLength = this.ScaleLineLength,
-                ScaleSplitCountX = this.ScaleSplitCountX,
-                ScaleSplitCountY = this.ScaleSplitCountY,
-                ScaleType = this.ScaleType,
-                TimeSpanFormat1 = this.TimeSpanFormat1,
-                TimeSpanFormat2 = this.TimeSpanFormat2,
-                FontFamily = this.FontFamily,
-                FontSize = this.FontSize,
-                FontStretch = this.FontStretch,
-                FontStyle = this.FontStyle,
-                FontWeight = this.FontWeight,
-            })
-            {
-                var tcs = new TaskCompletionSource<ImageSource>();
-                var dis = await CreateBackgroundDispatcherAsync();
-
-                await dis.InvokeAsync(() =>
-                {
-                    tcs.SetResult(param.DrawCanvas());
-                });
-                baseImage.Source = await tcs.Task;
-                dis.InvokeShutdown();
-
-                //await Task.Run(() =>
-                //{
-                //    // ｲﾒｰｼﾞはﾊﾞｯｸｸﾞﾗｳﾝﾄﾞで作成
-                //    return param.DrawCanvas();
-                //})
-                //.ContinueWith(
-                //    image =>
-                //    {
-                //        baseImage.Source = null;
-                //        baseImage.Source = image.Result;
-                //    },
-                //    TaskScheduler.FromCurrentSynchronizationContext()
-                //);
+                return;
             }
-            //ChartCreatorEx cc = ChartCreatorEx.CreateInstance(this);
-            //baseImage.Source = cc.CreateImage();
-            Console.WriteLine($"chart {Name}: {sp.Elapsed}");
-
+            using (var creator = WriteableBitmapCreator.CreateInstance(this))
+            {
+                baseImage.Source = creator.CreateImage().GetAsFrozen() as ImageSource;
+                LastRenderImage = baseImage.Source;
+            }
         }
 
-        public static Dispatcher BackgroundDispatcher => CreateBackgroundDispatcherAsync().Result;
-        static Task<Dispatcher> CreateBackgroundDispatcherAsync()
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
-            var tcs = new TaskCompletionSource<Dispatcher>();
+            base.OnRenderSizeChanged(sizeInfo);
 
-            var th = new Thread(() => {
-                var d = Dispatcher.CurrentDispatcher;
-                tcs.SetResult(d);
-                //Application.Current.Dispatcher.InvokeAsync(() => {
-                //    Application.Current.Exit += (sender, e) =>
-                //    {
-                //        d.InvokeShutdown();
-                //    };
-                //});
-                Dispatcher.Run();
-            });
-            th.IsBackground = true;
-            th.SetApartmentState(ApartmentState.STA);
-            th.Start();
+            Draw();
+        }
 
-            return tcs.Task;
+        protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
+        {
+            base.OnMouseRightButtonDown(e);
+
+            foreach (var c in LoadedCharts)
+            {
+                using (var creator = WriteableBitmapCreator.CreateInstance(c))
+                {
+                    c.baseImage.Source = creator.CreateImage(c.LastRenderImage, e).GetAsFrozen() as ImageSource;
+                    c.IsMouseRightDown = true;
+                }
+            }
+        }
+
+        protected override void OnPreviewMouseRightButtonUp(MouseButtonEventArgs e)
+        {
+            base.OnPreviewMouseRightButtonUp(e);
+
+            foreach (var c in LoadedCharts)
+            {
+                c.baseImage.Source = c.LastRenderImage;
+                c.IsMouseRightDown = false;
+            }
         }
     }
 }
