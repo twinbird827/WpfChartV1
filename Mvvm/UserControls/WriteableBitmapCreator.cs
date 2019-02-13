@@ -471,15 +471,22 @@ namespace WpfChartV1.Mvvm.UserControls
                     .SelectMany(line => 
                     {
                         // 枠外の値は、Max or Min にあわせる
-                        var yNow = line.Y > item.Max ? item.Max : line.Y < item.Min ? item.Min : line.Y;
+                        var yNow = GetInnerY(line.Y, item.Max, item.Min); //line.Y > item.Max ? item.Max : line.Y < item.Min ? item.Min : line.Y;
                         var x = (line.X - BeginTimeX).Ticks * zX;
-                        var y = (item.Max - (yNow - item.Min)) * zY;
+                        var y = ((item.Max - item.Min) - (yNow - item.Min)) * zY;
                         return new int[] { (int)(x + Margin.Left), (int)(y + Margin.Top) };
                     })
                     .ToArray();
 
                 bitmap.DrawPolyline(points, item.Foreground, (int)item.Thickness);
             }
+        }
+
+        private double GetInnerY(double y, double max, double min)
+        {
+            var tmpMax = min < max ? max : min;
+            var tmpMin = min < max ? min : max;
+            return tmpMax < y ? tmpMax : y < tmpMin ? tmpMin : y;
         }
 
         /// <summary>
