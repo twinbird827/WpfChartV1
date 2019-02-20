@@ -35,7 +35,12 @@ namespace WpfChartV1.Mvvm.UserControls
             InitializeComponent();
 
             Loaded += (sender, e) => LoadedCharts.Add(this);
-            Unloaded += (sender, e) => LoadedCharts.Remove(this);
+            Unloaded += (sender, e) =>
+            {
+                LoadedCharts.Remove(this);
+                Items = null;
+                LastRenderImage = null;
+            };
         }
 
         protected override void OnInitialized(EventArgs e)
