@@ -460,7 +460,7 @@ namespace WpfChartV1.Mvvm.UserControls
             foreach (var item in Items?.OfType<LineSeries>())
             {
                 // ﾗｲﾝが設定されていないものは除外
-                if (item.Lines == null || !item.Lines.Any()) return;
+                if (item.Lines == null || !item.Lines.Any()) continue;
 
                 // X, Y座標の倍率
                 var zY = GraphHeight / (item.Max - item.Min);
