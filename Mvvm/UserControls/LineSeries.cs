@@ -17,5 +17,7 @@ namespace WpfChartV1.Mvvm.UserControls
         /// </summary>
         public Line[] Lines { get; set; }
 
+        public DateTime XStartDate { get; set; }
+
     }
 }

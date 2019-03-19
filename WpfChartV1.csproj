@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -51,10 +53,10 @@
     <Compile Include="Common\DrawingContextExtensions.cs" />
     <Compile Include="Common\Util.cs" />
     <Compile Include="Common\WriteableBitmapExtensions.cs" />
-    <Compile Include="Mvvm\UserControls\Chart.xaml.cs">
-      <DependentUpon>Chart.xaml</DependentUpon>
+    <Compile Include="Mvvm\UserControls\LineChart.cs" />
+    <Compile Include="Mvvm\UserControls\SingleAxisChart.xaml.cs">
+      <DependentUpon>SingleAxisChart.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Mvvm\UserControls\WriteableBitmapCreator.cs" />
     <Compile Include="Mvvm\UserControls\Line.cs" />
     <Compile Include="Mvvm\UserControls\LineSeries.cs" />
     <Compile Include="Mvvm\UserControls\ScaleType.cs" />
@@ -68,7 +70,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Mvvm\UserControls\Chart.xaml">
+    <Page Include="Mvvm\UserControls\SingleAxisChart.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

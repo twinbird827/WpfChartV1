@@ -15,6 +15,16 @@ namespace WpfChartV1.Common
 {
     static class Util
     {
+        internal const int MarginLeft = 80;
+
+        internal const int ScaleLineLength = 5;
+
+        internal const int DotSpace = 2;
+
+        internal const int DotLength = 2;
+
+        internal static Color RightClickColor => Colors.Red;
+
         /// <summary>
         /// 目盛りに表示する値を取得する
         /// </summary>
@@ -32,20 +42,20 @@ namespace WpfChartV1.Common
         /// <summary>
         /// 目盛りに表示する値を取得する
         /// </summary>
-        /// <param name="min">最小値</param>
-        /// <param name="max">最大値</param>
+        /// <param name="begin">目盛り開始日付</param>
+        /// <param name="range">目盛り表示範囲</param>
         /// <param name="splitCount">分割数</param>
         /// <param name="dateFormat">日付表示ﾌｫｰﾏｯﾄ</param>
         /// <param name="timeFormat">時刻表示ﾌｫｰﾏｯﾄ</param>
         /// <returns></returns>
-        internal static IEnumerable<string> GetScaleStrings(DateTime min, DateTime max, int splitCount, string dateFormat, string timeFormat)
+        internal static IEnumerable<string> GetScaleStrings(DateTime begin, TimeSpan range, int splitCount, string dateFormat, string timeFormat)
         {
             var dates = Enumerable.Range(0, splitCount + 1)
-                .Select(i => (min + TimeSpan.FromTicks(((max - min).Ticks / splitCount * i))))
+                .Select(i => (begin + TimeSpan.FromTicks(range.Ticks / splitCount * i)))
                 .ToArray();
-            var prev = min.Date != max.Date
+            var prev = begin.Date != (begin + range).Date
                 ? default(DateTime)
-                : min;
+                : begin;
 
             return dates.Select(d =>
             {
@@ -82,14 +92,14 @@ namespace WpfChartV1.Common
         /// <param name="dateFormat">日付表示ﾌｫｰﾏｯﾄ</param>
         /// <param name="timeFormat">時刻表示ﾌｫｰﾏｯﾄ</param>
         /// <returns></returns>
-        internal static IEnumerable<string> GetScaleStrings(TimeSpan min, TimeSpan max, int splitCount, string dateFormat, string timeFormat)
+        internal static IEnumerable<string> GetScaleStrings(TimeSpan begin, TimeSpan range, int splitCount, string dateFormat, string timeFormat)
         {
-            var dates = Enumerable.Range(0, splitCount + 2)
-                .Select(i => (min + TimeSpan.FromTicks(((max - min).Ticks / splitCount * i))))
+            var dates = Enumerable.Range(0, splitCount + 1)
+                .Select(i => (begin + TimeSpan.FromTicks((range.Ticks / splitCount * i))))
                 .ToArray();
-            var prev = min.Days != max.Days
+            var prev = begin.Days != (begin + range).Days
                 ? default(TimeSpan)
-                : min;
+                : begin;
 
             return dates.Select(t =>
             {
@@ -125,13 +135,23 @@ namespace WpfChartV1.Common
         /// <returns>描写用書式ｵﾌﾞｼﾞｪｸﾄ</returns>
         internal static FormattedText GetFormattedText(string text, Brush brush, FontFamily fontFamily, FontStyle fontStyle, FontWeight fontWeight, FontStretch fontStretch, double fontSize)
         {
-            return new FormattedText(text,
+            return new FormattedText(text ?? string.Empty,
                 new CultureInfo("ja-jp"),
                 FlowDirection.LeftToRight,
                 new Typeface(fontFamily, fontStyle, fontWeight, fontStretch),
                 fontSize,
                 brush
             );
+        }
+
+        /// <summary>
+        /// 描写用にﾌｫｰﾏｯﾄされたｵﾌﾞｼﾞｪｸﾄを取得します。
+        /// </summary>
+        /// <param name="text">ｵﾌﾞｼﾞｪｸﾄに描写するﾒｯｾｰｼﾞ</param>
+        /// <returns></returns>
+        internal static FormattedText GetFormattedText(string text, UserControl lc)
+        {
+            return GetFormattedText(text, lc.Foreground, lc.FontFamily, lc.FontStyle, lc.FontWeight, lc.FontStretch, lc.FontSize);
         }
 
         internal static WriteableBitmap CreateWriteableBitmap(int width, int height)
