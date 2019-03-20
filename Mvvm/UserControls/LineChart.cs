@@ -19,9 +19,11 @@ namespace WpfChartV1.Mvvm.UserControls
         {
             ScaleType = ScaleType.TimeSpan;
             DateTimeFormat1 = @"{0:MM/dd}";
-            DateTimeFormat2 = @"{0:HH:mm}";
+            DateTimeFormat2 = @"{0:HH:mm:ss}";
+            DateTimeFormat3 = @"{0:MM/dd HH:mm:ss}";
             TimeSpanFormat1 = @"{0:dd}日";
-            TimeSpanFormat2 = @"{0:hh\:mm}";
+            TimeSpanFormat2 = @"{0:hh\:mm\:ss}";
+            TimeSpanFormat3 = @"{0:dd'日 'hh':'mm':'dd'}";
         }
 
         /// <summary>
@@ -50,6 +52,11 @@ namespace WpfChartV1.Mvvm.UserControls
         public string TimeSpanFormat2 { get; set; }
 
         /// <summary>
+        /// X軸の書式3(ScaleType=TimeSpan)を取得、または設定します。
+        /// </summary>
+        public string TimeSpanFormat3 { get; set; }
+
+        /// <summary>
         /// X軸の書式1(ScaleType=DateTime)を取得、または設定します。
         /// </summary>
         public string DateTimeFormat1 { get; set; }
@@ -60,14 +67,14 @@ namespace WpfChartV1.Mvvm.UserControls
         public string DateTimeFormat2 { get; set; }
 
         /// <summary>
+        /// X軸の書式3(ScaleType=DateTime)を取得、または設定します。
+        /// </summary>
+        public string DateTimeFormat3 { get; set; }
+
+        /// <summary>
         /// ｸﾞﾗﾌ表示用ﾃﾞｰﾀを取得、または設定します。
         /// </summary>
         public LineSeries[] Series { get; set; }
-        //{
-        //    get { return _Series; }
-        //    set { _Series = value; }
-        //}
-        //private LineSeries[] _Series;
 
         /// <summary>
         /// 描写する画像を取得、または設定します。
@@ -159,13 +166,13 @@ namespace WpfChartV1.Mvvm.UserControls
         internal FormattedText GetXHeaderDate(SingleAxisChart c, double x)
         {
             // x地点を表す日付
-            var xdate = c.XStartDate + c.XStartTime + TimeSpan.FromTicks((long)(c.XRange.Ticks / GWidth * (x - Margin.Left)));
+            var xdate = c.XStartDate + c.XStartTime + TimeSpan.FromTicks((long)(c.XRange.Ticks / GWidth * ((x - Margin.Left))));
             // x地点を表す時刻
             var xtime = ScaleType == ScaleType.TimeSpan ? xdate - c.XStartDate + c.XStartTime : TimeSpan.Zero;
 
             var xheader = ScaleType == ScaleType.DateTime
-                ? $"{string.Format(DateTimeFormat1, xdate)} {string.Format(DateTimeFormat2, xdate)}"
-                : $"{string.Format(TimeSpanFormat1, xtime)} {string.Format(TimeSpanFormat2, xtime)}";
+                ? $"{string.Format(DateTimeFormat3, xdate)}"
+                : $"{string.Format(TimeSpanFormat3, xtime)}";
 
             return Util.GetFormattedText(xheader, Util.RightClickBrush, c);
         }
@@ -377,7 +384,7 @@ namespace WpfChartV1.Mvvm.UserControls
             }
 
             // Y軸表題と描写位置設定
-            var point = new Point(0, GHeight / 2 + Margin.Top + title.Width / 2);
+            var point = new Point(20, GHeight / 2 + Margin.Top + title.Width / 2);
 
             // Y軸標題の中心で反時計回りに90度回転させて描写
             content.PushTransform(new RotateTransform(-90, point.X, point.Y));
