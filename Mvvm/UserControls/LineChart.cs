@@ -126,6 +126,10 @@ namespace WpfChartV1.Mvvm.UserControls
         }
         private ICommand _OnDoubleClick;
 
+        /// <summary>
+        /// ﾁｬｰﾄ内でﾀﾞﾌﾞﾙｸﾘｯｸした際の処理を実行します。
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnDoubleClickAction(MouseButtonEventArgs e)
         {
 
@@ -163,7 +167,7 @@ namespace WpfChartV1.Mvvm.UserControls
                 ? $"{string.Format(DateTimeFormat1, xdate)} {string.Format(DateTimeFormat2, xdate)}"
                 : $"{string.Format(TimeSpanFormat1, xtime)} {string.Format(TimeSpanFormat2, xtime)}";
 
-            return Util.GetFormattedText(xheader, Brushes.Red, c.FontFamily, c.FontStyle, c.FontWeight, c.FontStretch, c.FontSize);
+            return Util.GetFormattedText(xheader, Util.RightClickBrush, c);
         }
 
         /// <summary>
@@ -222,7 +226,6 @@ namespace WpfChartV1.Mvvm.UserControls
             using (var content = dv.Open())
             {
                 // WriteableBitmap を貼付
-                //content.DrawImage(bitmap, new Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
                 content.DrawImage(bitmap.GetAsFrozen() as ImageSource);
 
                 // Y軸の文字を描写
@@ -382,7 +385,13 @@ namespace WpfChartV1.Mvvm.UserControls
             content.Pop();
         }
 
-        internal bool DrawMouseLine(Point p)
+        /// <summary>
+        /// ﾏｳｽ右ｸﾘｯｸﾎｰﾙﾄﾞ時に対象位置を十字に区切る点線と、Y軸ﾍｯﾀﾞにその地点の値を表示します。
+        /// </summary>
+        /// <param name="container">ｺﾝﾃﾅ</param>
+        /// <param name="p">表示位置</param>
+        /// <returns>描写した：true / していない：false</returns>
+        internal bool DrawMouseLine(SingleAxisChart container, Point p)
         {
             if (!(Margin.Left < p.X &&
                     p.X < GWidth + Margin.Left &&
@@ -394,13 +403,15 @@ namespace WpfChartV1.Mvvm.UserControls
 
             // ﾋﾞｯﾄﾏｯﾌﾟの大きさ決定
             var bitmap = Util.CreateWriteableBitmap((int)Width, (int)Height);
+            var x = p.X;
+            var y = p.Y;
+
+            var formattedtext = GetYText(container, y);
+            var formattedpoint = new Point(Margin.Left - Util.ScaleLineLength - formattedtext.Width, y - formattedtext.Height / 2);
 
             // ﾋﾞｯﾄﾏｯﾌﾟに線を描写
             using (var context = bitmap.GetBitmapContext())
             {
-                var x = p.X;
-                var y = p.Y;
-
                 bitmap.DrawLineDotted(
                     new Point(x, Margin.Top + 1),
                     new Point(x, GHeight + Margin.Top + 1),
@@ -416,9 +427,15 @@ namespace WpfChartV1.Mvvm.UserControls
                     Util.DotSpace,
                     Util.DotLength
                 );
+
+                var x1 = formattedpoint.X;
+                var y1 = formattedpoint.Y;
+                var x2 = x1 + formattedtext.Width;
+                var y2 = y1 + formattedtext.Height;
+                bitmap.FillRectangle((int)x1, (int)y1, (int)x2, (int)y2, Util.RightClickBackground);
             }
 
-            // X軸とY軸の文字を描写
+            // Y軸の文字を描写
             var dv = new DrawingGroup();
             using (var content = dv.Open())
             {
@@ -427,6 +444,9 @@ namespace WpfChartV1.Mvvm.UserControls
 
                 // 作成したﾋﾞｯﾄﾏｯﾌﾟを貼付
                 content.DrawImage(bitmap);
+
+                // 縦軸の値を描写
+                content.DrawText(formattedtext, formattedpoint);
             }
 
             // ｱﾝﾁｴｲﾘｱｽ解除
@@ -439,6 +459,19 @@ namespace WpfChartV1.Mvvm.UserControls
             bitmap = null;
 
             return true;
+        }
+
+        /// <summary>
+        /// 指定した位置を意味する表示文字を取得します。
+        /// </summary>
+        /// <param name="c">ｺﾝﾃﾅ</param>
+        /// <param name="y">位置</param>
+        /// <returns><code>FormattedText</code></returns>
+        private FormattedText GetYText(SingleAxisChart c, double y)
+        {
+            var series = Series.First();
+            var value = (series.Max - series.Min) / GHeight * (GHeight - y + Margin.Top) + series.Min;
+            return Util.GetFormattedText(string.Format(series.Format, value), Util.RightClickBrush, c);
         }
     }
 }

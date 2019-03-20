@@ -223,8 +223,6 @@ namespace WpfChartV1.Mvvm.UserControls
             // ﾋﾞｯﾄﾏｯﾌﾟの大きさ決定
             var bitmap = Util.CreateWriteableBitmap((int)PreviousRender.Width, (int)PreviousRender.Height);
 
-            //var brush = Background.GetAsFrozen() as SolidColorBrush;
-            //var color = brush.Color;
             // ﾋﾞｯﾄﾏｯﾌﾟに線を描写
             using (var context = bitmap.GetBitmapContext())
             {
@@ -232,7 +230,7 @@ namespace WpfChartV1.Mvvm.UserControls
                 var y1 = 0;
                 var x2 = p.X + text.Width / 2;
                 var y2 = text.Height;
-                bitmap.FillRectangle((int)x1, (int)y1, (int)x2, (int)y2, Colors.White);
+                bitmap.FillRectangle((int)x1, (int)y1, (int)x2, (int)y2, Util.RightClickBackground);
             }
 
             using (var content = dv.Open())
@@ -292,7 +290,7 @@ namespace WpfChartV1.Mvvm.UserControls
 
             foreach (var c in Charts)
             {
-                draw = draw && c.DrawMouseLine(p);
+                draw = draw && c.DrawMouseLine(this, p);
             }
             if (draw)
             {

@@ -15,15 +15,44 @@ namespace WpfChartV1.Common
 {
     static class Util
     {
+        /// <summary>
+        /// 短軸ｸﾞﾗﾌの左余白
+        /// </summary>
         internal const int MarginLeft = 80;
 
+        /// <summary>
+        /// Y軸, X軸の区切り線の長さ
+        /// </summary>
         internal const int ScaleLineLength = 5;
 
+        /// <summary>
+        /// 点線の1点毎の空きｽﾍﾟｰｽ
+        /// </summary>
         internal const int DotSpace = 2;
 
+        /// <summary>
+        /// 点線の1点毎の長さ
+        /// </summary>
         internal const int DotLength = 2;
 
+        /// <summary>
+        /// 右ｸﾘｯｸ時に表示する文字色(Color)
+        /// </summary>
         internal static Color RightClickColor => Colors.Red;
+
+        /// <summary>
+        /// 右ｸﾘｯｸ時に表示する文字色(Brush)
+        /// </summary>
+        internal static SolidColorBrush RightClickBrush
+        {
+            get { return _RightClickBrush = _RightClickBrush ?? (new SolidColorBrush(RightClickColor)).GetAsFrozen() as SolidColorBrush; }
+        }
+        private static SolidColorBrush _RightClickBrush;
+
+        /// <summary>
+        /// 右ｸﾘｯｸ時に表示する背景色
+        /// </summary>
+        internal static Color RightClickBackground => Colors.Yellow;
 
         /// <summary>
         /// 目盛りに表示する値を取得する
@@ -151,9 +180,25 @@ namespace WpfChartV1.Common
         /// <returns></returns>
         internal static FormattedText GetFormattedText(string text, UserControl lc)
         {
-            return GetFormattedText(text, lc.Foreground, lc.FontFamily, lc.FontStyle, lc.FontWeight, lc.FontStretch, lc.FontSize);
+            return GetFormattedText(text, lc.Foreground, lc);
         }
 
+        /// <summary>
+        /// 描写用にﾌｫｰﾏｯﾄされたｵﾌﾞｼﾞｪｸﾄを取得します。
+        /// </summary>
+        /// <param name="text">ｵﾌﾞｼﾞｪｸﾄに描写するﾒｯｾｰｼﾞ</param>
+        /// <returns></returns>
+        internal static FormattedText GetFormattedText(string text, Brush brush, UserControl lc)
+        {
+            return GetFormattedText(text, brush, lc.FontFamily, lc.FontStyle, lc.FontWeight, lc.FontStretch, lc.FontSize);
+        }
+
+        /// <summary>
+        /// Bitmapｲﾒｰｼﾞを作成します。
+        /// </summary>
+        /// <param name="width">作成するBitmapの幅</param>
+        /// <param name="height">作成するBitmapの高さ</param>
+        /// <returns></returns>
         internal static WriteableBitmap CreateWriteableBitmap(int width, int height)
         {
             var dpi = WpfUtil.GetDpi(Orientation.Horizontal);
