@@ -384,7 +384,7 @@ namespace WpfChartV1.Mvvm.UserControls
             }
 
             // Y軸表題と描写位置設定
-            var point = new Point(20, GHeight / 2 + Margin.Top + title.Width / 2);
+            var point = new Point(0, GHeight / 2 + Margin.Top + title.Width / 2);
 
             // Y軸標題の中心で反時計回りに90度回転させて描写
             content.PushTransform(new RotateTransform(-90, point.X, point.Y));
