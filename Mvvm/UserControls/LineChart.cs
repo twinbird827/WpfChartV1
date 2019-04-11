@@ -23,7 +23,7 @@ namespace WpfChartV1.Mvvm.UserControls
             DateTimeFormat3 = @"{0:MM/dd HH:mm:ss}";
             TimeSpanFormat1 = @"{0:dd}日";
             TimeSpanFormat2 = @"{0:hh\:mm\:ss}";
-            TimeSpanFormat3 = @"{0:dd'日 'hh':'mm':'dd'}";
+            TimeSpanFormat3 = @"{0:dd'日 'hh':'mm':'ss}";
         }
 
         /// <summary>
