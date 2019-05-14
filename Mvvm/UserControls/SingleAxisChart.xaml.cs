@@ -27,7 +27,25 @@ namespace WpfChartV1.Mvvm.UserControls
         public SingleAxisChart()
         {
             InitializeComponent();
+
+            baseContainer.DataContext = this;
         }
+
+        /// <summary>
+        /// ｸﾞﾗﾌ表示用ﾃﾞｰﾀを取得、または設定します。
+        /// </summary>
+        public bool IsCustomize
+        {
+            get { return (bool)GetValue(IsCustomizeProperty); }
+            set { SetValue(IsCustomizeProperty, value); }
+        }
+
+        public static readonly DependencyProperty IsCustomizeProperty =
+            DependencyProperty.Register("IsCustomize",
+                typeof(bool),
+                typeof(SingleAxisChart),
+                new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, null)
+            );
 
         /// <summary>
         /// ｸﾞﾗﾌ表示用ﾌﾗｸﾞを取得、または設定します。
@@ -161,12 +179,31 @@ namespace WpfChartV1.Mvvm.UserControls
             XAxisImage.Source = DrawXAxis(xheaders);
             PreviousRender = XAxisImage.Source;
 
-            // 各ﾁｬｰﾄをﾚﾝﾀﾞﾘﾝｸﾞする。
-            foreach (var c in Charts)
+            if (IsCustomize)
             {
-                c.Width = ActualWidth;
-                c.Height = (ActualHeight - xheaders.Max(h => h.Height)) / Charts.Count();
-                c.Draw(this, xheaders);
+                var c1 = Charts.First();
+                var c2 = Charts.Skip(1).FirstOrDefault();
+                var c2Height = c2 != null ? 100 : 0;
+                c1.Width = ActualWidth;
+                c1.Height = (ActualHeight - xheaders.Max(h => h.Height) - c2Height);
+                c1.Draw(this, xheaders);
+
+                if (c2 != null)
+                {
+                    c2.Width = ActualWidth;
+                    c2.Height = c2Height;
+                    c2.Draw(this, xheaders);
+                }
+            }
+            else
+            {
+                // 各ﾁｬｰﾄをﾚﾝﾀﾞﾘﾝｸﾞする。
+                foreach (var c in Charts)
+                {
+                    c.Width = ActualWidth;
+                    c.Height = (ActualHeight - xheaders.Max(h => h.Height)) / Charts.Count();
+                    c.Draw(this, xheaders);
+                }
             }
         }
 

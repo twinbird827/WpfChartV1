@@ -5,24 +5,58 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:WpfChartV1.Mvvm.UserControls"
              xmlns:behavior="clr-namespace:WpfUtilV2.Mvvm.Behaviors;assembly=WpfUtilV2"
+             xmlns:converter="clr-namespace:WpfUtilV2.Mvvm.Converters;assembly=WpfUtilV2"
              mc:Ignorable="d" >
-    <DockPanel>
+    <DockPanel x:Name="baseContainer">
+        <DockPanel.Resources>
+            <converter:Boolean2VisibilityHiddenConverter x:Key="Boolean2VisibilityHiddenConverter2" />
+            <converter:ValueConverterGroup x:Key="BooleanReverse2VisibilityHiddenConverter2">
+                <converter:BooleanReverseConverter />
+                <converter:Boolean2VisibilityHiddenConverter />
+            </converter:ValueConverterGroup>
 
+            <Style TargetType="ItemsControl">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsCustomize}" Value="True">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+            <Style TargetType="TextBlock" x:Key="TESTTB">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsCustomize}" Value="False">
+                        <Setter Property="Background" Value="Red" />
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </DockPanel.Resources>
         <Image x:Name="XAxisImage" DockPanel.Dock="Bottom" />
-        
-        <ItemsControl ItemsSource="{Binding Charts}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="1" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Image Source="{Binding Render}" 
-                                behavior:FrameworkElementMouseLeftButtonDownBehavior.DoubleClick="{Binding OnDoubleClick}"/>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
 
+        <Grid>
+            <ItemsControl ItemsSource="{Binding Charts}"  Visibility="{Binding IsCustomize, Converter={StaticResource BooleanReverse2VisibilityHiddenConverter2}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="1" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Image Source="{Binding Render}" 
+                           behavior:FrameworkElementMouseLeftButtonDownBehavior.DoubleClick="{Binding OnDoubleClick}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <StackPanel Visibility="{Binding IsCustomize, Converter={StaticResource Boolean2VisibilityHiddenConverter2}}">
+                <Image DataContext="{Binding Charts[0]}"
+                       Source="{Binding Render}"
+                       behavior:FrameworkElementMouseLeftButtonDownBehavior.DoubleClick="{Binding OnDoubleClick}" />
+
+                <Image DataContext="{Binding Charts[1]}"
+                       Source="{Binding Render}"
+                       behavior:FrameworkElementMouseLeftButtonDownBehavior.DoubleClick="{Binding OnDoubleClick}" />
+            </StackPanel>
+        </Grid>
     </DockPanel>
 </UserControl>
