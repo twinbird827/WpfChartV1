@@ -7,7 +7,7 @@ using WpfUtilV2.Extensions;
 
 namespace WpfChartV1.Mvvm.UserControls
 {
-    public enum ScaleType
+    public enum DateOrTimeType
     {
         /// <summary>
         /// 横軸を経過時間で描写します。

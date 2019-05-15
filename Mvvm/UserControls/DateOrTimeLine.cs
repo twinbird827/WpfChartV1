@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WpfChartV1.Mvvm.UserControls
 {
-    public class Line
+    public class DateOrTimeLine
     {
         /// <summary>
         /// 線を繋ぐ頂点のX座標
@@ -23,7 +23,7 @@ namespace WpfChartV1.Mvvm.UserControls
         /// </summary>
         /// <param name="x">X座標</param>
         /// <param name="y">Y座標</param>
-        public Line(DateTime x, double y)
+        public DateOrTimeLine(DateTime x, double y)
         {
             X = x;
             Y = y;

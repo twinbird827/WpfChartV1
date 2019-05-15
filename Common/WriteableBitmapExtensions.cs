@@ -98,7 +98,7 @@ namespace WpfChartV1.Common
         /// <param name="color">色</param>
         public static void DrawLineDotted(this WriteableBitmap bitmap, Point begin, Point end, Color color, int dotSpace, int dotLength)
         {
-            bitmap.DrawLineDotted((int)begin.X, (int)begin.Y, (int)end.X, (int)end.Y, dotSpace, dotLength, color);
+            bitmap.DrawLineDotted((int)begin.X + 1, (int)begin.Y + 1, (int)end.X + 1, (int)end.Y + 1, dotSpace, dotLength, color);
         }
 
         /// <summary>

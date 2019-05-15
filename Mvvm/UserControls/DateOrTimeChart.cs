@@ -9,72 +9,47 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WpfChartV1.Common;
+using WpfUtilV2.Extensions;
 using WpfUtilV2.Mvvm;
 
 namespace WpfChartV1.Mvvm.UserControls
 {
-    public class LineChart : BindableBase
+    public class DateOrTimeChart : BindableBase
     {
-        public LineChart()
-        {
-            ScaleType = ScaleType.TimeSpan;
-            DateTimeFormat1 = @"{0:MM/dd}";
-            DateTimeFormat2 = @"{0:HH:mm}";
-            DateTimeFormat3 = @"{0:MM/dd HH:mm:ss}";
-            TimeSpanFormat1 = @"{0:dd}日";
-            TimeSpanFormat2 = @"{0:hh\:mm}";
-            TimeSpanFormat3 = @"{0:dd'日 'hh':'mm':'ss}";
-        }
-
-        /// <summary>
-        /// X軸の分割数を取得、または設定します。
-        /// </summary>
-        public int ScaleSplitCountX { get; set; }
-
         /// <summary>
         /// Y軸の分割数を取得、または設定します。
         /// </summary>
-        public int ScaleSplitCountY { get; set; }
+        public int YScaleSplit { get; set; }
 
         /// <summary>
-        /// X軸の表示ﾀｲﾌﾟを取得、または設定します。
+        /// 高さの割合を取得、または設定します。
         /// </summary>
-        public ScaleType ScaleType { get; set; }
+        public double PercentageHeight { get; set; } = 1;
 
         /// <summary>
-        /// X軸の書式1(ScaleType=TimeSpan)を取得、または設定します。
+        /// ﾁｬｰﾄの縦軸ﾀｲﾄﾙを設定、または取得します。
         /// </summary>
-        public string TimeSpanFormat1 { get; set; }
+        public string Title { get; set; }
 
         /// <summary>
-        /// X軸の書式2(ScaleType=TimeSpan)を取得、または設定します。
+        /// ﾁｬｰﾄの最小値を設定、または取得します。
         /// </summary>
-        public string TimeSpanFormat2 { get; set; }
+        public double Minimum { get; set; }
 
         /// <summary>
-        /// X軸の書式3(ScaleType=TimeSpan)を取得、または設定します。
+        /// ﾁｬｰﾄの最大値を設定、または取得します。
         /// </summary>
-        public string TimeSpanFormat3 { get; set; }
+        public double Maximum { get; set; }
 
         /// <summary>
-        /// X軸の書式1(ScaleType=DateTime)を取得、または設定します。
+        /// ﾁｬｰﾄの表示ﾌｫｰﾏｯﾄを設定、または取得します。
         /// </summary>
-        public string DateTimeFormat1 { get; set; }
-
-        /// <summary>
-        /// X軸の書式2(ScaleType=DateTime)を取得、または設定します。
-        /// </summary>
-        public string DateTimeFormat2 { get; set; }
-
-        /// <summary>
-        /// X軸の書式3(ScaleType=DateTime)を取得、または設定します。
-        /// </summary>
-        public string DateTimeFormat3 { get; set; }
+        public string Format { get; set; }
 
         /// <summary>
         /// ｸﾞﾗﾌ表示用ﾃﾞｰﾀを取得、または設定します。
         /// </summary>
-        public LineSeries[] Series { get; set; }
+        public DateOrTimeSeries[] Series { get; set; }
 
         /// <summary>
         /// 描写する画像を取得、または設定します。
@@ -87,24 +62,29 @@ namespace WpfChartV1.Mvvm.UserControls
         private ImageSource _Render;
 
         /// <summary>
-        /// 画像の幅を取得、または設定します。
-        /// </summary>
-        internal double Width { get; set; }
-
-        /// <summary>
-        /// 画像の高さを取得、または設定します。
-        /// </summary>
-        internal double Height { get; set; }
-
-        /// <summary>
         /// 最後に描写した画像
         /// </summary>
         internal ImageSource PreviousRender { get; set; }
 
         /// <summary>
-        /// ｸﾞﾗﾌ以外の領域を取得、または設定します。
+        /// ｸﾞﾗﾌ領域の幅を取得、または設定します。
         /// </summary>
-        private Thickness Margin;
+        internal double Width { get; set; }
+
+        /// <summary>
+        /// ｸﾞﾗﾌ領域の高さを取得、または設定します。
+        /// </summary>
+        internal double Height { get; set; }
+
+        /// <summary>
+        /// ｸﾞﾗﾌ領域の幅を取得、または設定します。
+        /// </summary>
+        internal double GWidth { get; set; }
+
+        /// <summary>
+        /// ｸﾞﾗﾌ領域の高さを取得、または設定します。
+        /// </summary>
+        internal double GHeight { get; set; }
 
         /// <summary>
         /// 折れ線ｸﾞﾗﾌ以外の色を取得、または設定します。
@@ -112,24 +92,16 @@ namespace WpfChartV1.Mvvm.UserControls
         private Color Color { get; set; }
 
         /// <summary>
-        /// ｸﾞﾗﾌ領域の幅を取得、または設定します。
+        /// ｸﾞﾗﾌ以外の領域を取得、または設定します。
         /// </summary>
-        private double GWidth { get; set; }
-
-        /// <summary>
-        /// ｸﾞﾗﾌ領域の高さを取得、または設定します。
-        /// </summary>
-        private double GHeight { get; set; }
+        private Thickness Margin;
 
         /// <summary>
         /// ﾀﾞﾌﾞﾙｸﾘｯｸ時の処理(ｸﾞﾗﾌの表示内容を変更するﾀﾞｲｱﾛｸﾞを表示する)
         /// </summary>
         public ICommand OnDoubleClick
         {
-            get
-            {
-                return _OnDoubleClick = _OnDoubleClick ?? new RelayCommand<MouseButtonEventArgs>(OnDoubleClickAction);
-            }
+            get { return _OnDoubleClick = _OnDoubleClick ?? new RelayCommand<MouseButtonEventArgs>(OnDoubleClickAction); }
         }
         private ICommand _OnDoubleClick;
 
@@ -143,57 +115,21 @@ namespace WpfChartV1.Mvvm.UserControls
         }
 
         /// <summary>
-        /// X軸のﾍｯﾀﾞ文字を取得します。
-        /// </summary>
-        /// <param name="c">ｺﾝﾃﾅ</param>
-        /// <returns></returns>
-        internal FormattedText[] GetXHeaders(SingleAxisChart c)
-        {
-            var xheaders = ScaleType == ScaleType.DateTime
-                ? Util.GetScaleStrings(c.XStartDate + c.XStartTime, c.XRange, ScaleSplitCountX, DateTimeFormat1, DateTimeFormat2)
-                : Util.GetScaleStrings(c.XStartTime, c.XRange, ScaleSplitCountX, TimeSpanFormat1, TimeSpanFormat2);
-
-            return xheaders
-                .Select(s => Util.GetFormattedText(s, c))
-                .ToArray();
-        }
-
-        /// <summary>
-        /// X軸のﾍｯﾀﾞ文字を取得します。
-        /// </summary>
-        /// <param name="c">ｺﾝﾃﾅ</param>
-        /// <returns></returns>
-        internal FormattedText GetXHeaderDate(SingleAxisChart c, double x)
-        {
-            // x地点を表す日付
-            var xdate = c.XStartDate + c.XStartTime + TimeSpan.FromTicks((long)(c.XRange.Ticks / GWidth * ((x - Margin.Left))));
-            // x地点を表す時刻
-            var xtime = ScaleType == ScaleType.TimeSpan ? xdate - c.XStartDate + c.XStartTime : TimeSpan.Zero;
-
-            var xheader = ScaleType == ScaleType.DateTime
-                ? $"{string.Format(DateTimeFormat3, xdate)}"
-                : $"{string.Format(TimeSpanFormat3, xtime)}";
-
-            return Util.GetFormattedText(xheader, Util.RightClickBrush, c);
-        }
-
-        /// <summary>
         /// ｸﾞﾗﾌを描写します。
         /// </summary>
         /// <param name="container">ｺﾝﾃﾅ</param>
-        /// <param name="xheaders">X軸のﾍｯﾀﾞ文字</param>
-        internal void Draw(SingleAxisChart container, FormattedText[] xheaders)
+        /// <param name="xheaders">X軸ﾍｯﾀﾞ文字</param>
+        internal void Draw(DateOrTimeSingleChart container, FormattedText[] xheaders)
         {
             var series = Series?.FirstOrDefault();
 
             if (Width <= 0 || Height <= 0 || series == null) return;
 
-            var foreground = container.Foreground.GetAsFrozen() as SolidColorBrush;
-            Color = foreground != null ? foreground.Color : Colors.Black;
+            Color = GetForeground(container);
 
             // Y軸に表示するﾍｯﾀﾞ文字の生成
             var yheaders = series != null
-                ? Util.GetScaleStrings(series.Min, series.Max, ScaleSplitCountY, series.Format)
+                ? Util.GetScaleStrings(Minimum, Maximum, YScaleSplit, Format)
                     .Select(s => Util.GetFormattedText(s, container))
                     .ToArray()
                 : new FormattedText[] { Util.GetFormattedText("1", container) };
@@ -215,11 +151,8 @@ namespace WpfChartV1.Mvvm.UserControls
             // ﾋﾞｯﾄﾏｯﾌﾟに線を描写
             using (var context = bitmap.GetBitmapContext())
             {
-                // Y軸の表題を描写
-                DrawXYAxisLine(bitmap);
-
-                // 目盛りを描写
-                DrawXYScale(bitmap);
+                // X軸とY軸の目盛り線を描写
+                DrawXYScale(container, bitmap);
 
                 // ﾌﾚｰﾑ描写
                 DrawFrame(bitmap);
@@ -233,59 +166,44 @@ namespace WpfChartV1.Mvvm.UserControls
             using (var content = dv.Open())
             {
                 // WriteableBitmap を貼付
-                content.DrawImage(bitmap.GetAsFrozen() as ImageSource);
+                content.DrawImage(bitmap.Frozen());
 
                 // Y軸の文字を描写
-                DrawYText(content, yheaders, Util.GetFormattedText(series?.Title, container));
+                DrawYText(container, content, yheaders);
             }
 
             // WriteableBitmapは必要ないので開放
             bitmap = null;
 
             // ｱﾝﾁｴｲﾘｱｽ解除
-            var returnImage = new DrawingImage(Util.ReleaseAntialiasing(dv));
+            var image = new DrawingImage(Util.ReleaseAntialiasing(dv));
             // Freezeして設定
-            Render = returnImage.GetAsFrozen() as ImageSource;
+            Render = image.Frozen();
             PreviousRender = Render;
+
         }
 
         /// <summary>
-        /// X軸とY軸の区切り線を描写します。
+        /// ｸﾞﾗﾌの枠色を取得します。
         /// </summary>
-        /// <param name="dc">ﾚﾝﾀﾞｰ</param>
-        private void DrawXYAxisLine(WriteableBitmap dc)
+        /// <param name="control">ｺﾝﾃﾅ</param>
+        /// <returns></returns>
+        private Color GetForeground(Control control)
         {
-            foreach (var i in Enumerable.Range(0, ScaleSplitCountX + 1))
-            {
-                var x = GWidth / ScaleSplitCountX * i;
-                dc.DrawLine(
-                    Margin,
-                    new Point(x, GHeight + Util.ScaleLineLength),
-                    new Point(x, GHeight),
-                    Color
-                );
-            }
-            foreach (var i in Enumerable.Range(0, ScaleSplitCountY + 1))
-            {
-                var y = GHeight / ScaleSplitCountY * i;
-                dc.DrawLine(
-                    Margin,
-                    new Point(Util.ScaleLineLength * -1, y),
-                    new Point(0, y),
-                    Color
-                );
-            }
+            var brush = control.Foreground.Frozen() as SolidColorBrush;
+            return brush?.Color ?? Colors.Black;
         }
 
         /// <summary>
-        /// X軸とY軸の目盛りを描写します。
+        /// X軸とY軸の目盛り線を描写します。
         /// </summary>
         /// <param name="dc">ﾚﾝﾀﾞｰ</param>
-        private void DrawXYScale(WriteableBitmap dc)
+        private void DrawXYScale(DateOrTimeSingleChart container, WriteableBitmap dc)
         {
-            foreach (var i in Enumerable.Range(0, ScaleSplitCountX))
+            foreach (var i in Enumerable.Range(0, container.XScaleSplit + 1))
             {
-                var x = GWidth / ScaleSplitCountX * i + 1;
+                var x = GWidth / container.XScaleSplit * i;
+
                 dc.DrawLineDotted(
                     Margin,
                     new Point(x, 1),
@@ -294,10 +212,19 @@ namespace WpfChartV1.Mvvm.UserControls
                     Util.DotSpace,
                     Util.DotLength
                 );
+
+                dc.DrawLine(
+                    Margin,
+                    new Point(x, GHeight + Util.ScaleLineLength),
+                    new Point(x, GHeight),
+                    Color
+                );
             }
-            foreach (var i in Enumerable.Range(0, ScaleSplitCountY))
+
+            foreach (var i in Enumerable.Range(0, YScaleSplit + 1))
             {
-                var y = GHeight / ScaleSplitCountY * i + 1;
+                var y = GHeight / YScaleSplit * i;
+
                 dc.DrawLineDotted(
                     Margin,
                     new Point(0, y),
@@ -305,6 +232,13 @@ namespace WpfChartV1.Mvvm.UserControls
                     Color,
                     Util.DotSpace,
                     Util.DotLength
+                );
+
+                dc.DrawLine(
+                    Margin,
+                    new Point(Util.ScaleLineLength * -1, y),
+                    new Point(0, y),
+                    Color
                 );
             }
         }
@@ -321,7 +255,7 @@ namespace WpfChartV1.Mvvm.UserControls
                 if (item.Lines == null || !item.Lines.Any()) continue;
 
                 // X, Y座標の倍率
-                var zY = GHeight / (item.Max - item.Min);
+                var zY = GHeight / (Maximum - Minimum);
                 var zX = xzoom;
 
                 // 折れ線ｸﾞﾗﾌのﾎﾟｲﾝﾄ配列を作成
@@ -329,9 +263,9 @@ namespace WpfChartV1.Mvvm.UserControls
                     .SelectMany(line =>
                     {
                         // 枠外の値は、Max or Min にあわせる
-                        var yNow = GetInnerY(line.Y, item.Max, item.Min); //line.Y > item.Max ? item.Max : line.Y < item.Min ? item.Min : line.Y;
-                        var x = (line.X - item.XStartDate).Ticks * zX;
-                        var y = ((item.Max - item.Min) - (yNow - item.Min)) * zY;
+                        var yNow = GetInnerY(line.Y, Maximum, Minimum);
+                        var x = (line.X - item.XBeginDate).Ticks * zX;
+                        var y = (Maximum - Minimum - (yNow - Minimum)) * zY;
                         return new int[] { (int)(x + Margin.Left), (int)(y + Margin.Top) };
                     })
                     .ToArray();
@@ -367,17 +301,15 @@ namespace WpfChartV1.Mvvm.UserControls
         /// Y軸のﾍｯﾀﾞ文字を描写します。
         /// </summary>
         /// <param name="content"></param>
-        private void DrawYText(DrawingContext content, FormattedText[] headers, FormattedText title)
+        private void DrawYText(DateOrTimeSingleChart container, DrawingContext content, FormattedText[] headers)
         {
-            var item = Series?.FirstOrDefault();
+            var title = Util.GetFormattedText(Title, container);
 
-            if (item == null) return;
-
-            foreach (var i in Enumerable.Range(0, ScaleSplitCountY + 1))
+            foreach (var i in Enumerable.Range(0, YScaleSplit + 1))
             {
                 var text = headers[i];
                 var x = Util.ScaleLineLength * -1 + Margin.Left;
-                var y = GHeight - GHeight / ScaleSplitCountY * i + Margin.Top;
+                var y = GHeight - GHeight / YScaleSplit * i + Margin.Top;
 
                 // 文字を描写
                 content.DrawText(text, new Point(x - text.Width, y - text.Height / 2));
@@ -398,7 +330,7 @@ namespace WpfChartV1.Mvvm.UserControls
         /// <param name="container">ｺﾝﾃﾅ</param>
         /// <param name="p">表示位置</param>
         /// <returns>描写した：true / していない：false</returns>
-        internal bool DrawMouseLine(SingleAxisChart container, Point p)
+        internal bool DrawMouseLine(DateOrTimeSingleChart container, Point p)
         {
             if (!(Margin.Left < p.X &&
                     p.X < GWidth + Margin.Left &&
@@ -420,16 +352,16 @@ namespace WpfChartV1.Mvvm.UserControls
             using (var context = bitmap.GetBitmapContext())
             {
                 bitmap.DrawLineDotted(
-                    new Point(x, Margin.Top + 1),
-                    new Point(x, GHeight + Margin.Top + 1),
+                    new Point(x, Margin.Top),
+                    new Point(x, GHeight + Margin.Top),
                     Util.RightClickColor,
                     Util.DotSpace,
                     Util.DotLength
                 );
 
                 bitmap.DrawLineDotted(
-                    new Point(Margin.Left + 1, y),
-                    new Point(GWidth + Margin.Left + 1, y),
+                    new Point(Margin.Left, y),
+                    new Point(GWidth + Margin.Left, y),
                     Util.RightClickColor,
                     Util.DotSpace,
                     Util.DotLength
@@ -457,10 +389,10 @@ namespace WpfChartV1.Mvvm.UserControls
             }
 
             // ｱﾝﾁｴｲﾘｱｽ解除
-            var returnImage = new DrawingImage(Util.ReleaseAntialiasing(dv));
-            
+            var image = new DrawingImage(Util.ReleaseAntialiasing(dv));
+
             // Freezeして設定
-            Render = returnImage.GetAsFrozen() as ImageSource;
+            Render = image.Frozen();
 
             // WriteableBitmapは必要ないので開放
             bitmap = null;
@@ -474,11 +406,11 @@ namespace WpfChartV1.Mvvm.UserControls
         /// <param name="c">ｺﾝﾃﾅ</param>
         /// <param name="y">位置</param>
         /// <returns><code>FormattedText</code></returns>
-        private FormattedText GetYText(SingleAxisChart c, double y)
+        private FormattedText GetYText(DateOrTimeSingleChart c, double y)
         {
-            var series = Series.First();
-            var value = (series.Max - series.Min) / GHeight * (GHeight - y + Margin.Top) + series.Min;
-            return Util.GetFormattedText(string.Format(series.Format, value), Util.RightClickBrush, c);
+            var value = (Maximum - Minimum) / GHeight * (GHeight - y + Margin.Top) + Minimum;
+            return Util.GetFormattedText(string.Format(Format, value), Util.RightClickBrush, c);
         }
+
     }
 }

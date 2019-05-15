@@ -53,14 +53,13 @@
     <Compile Include="Common\DrawingContextExtensions.cs" />
     <Compile Include="Common\Util.cs" />
     <Compile Include="Common\WriteableBitmapExtensions.cs" />
-    <Compile Include="Mvvm\UserControls\LineChart.cs" />
-    <Compile Include="Mvvm\UserControls\SingleAxisChart.xaml.cs">
-      <DependentUpon>SingleAxisChart.xaml</DependentUpon>
+    <Compile Include="Mvvm\UserControls\DateOrTimeChart.cs" />
+    <Compile Include="Mvvm\UserControls\DateOrTimeLine.cs" />
+    <Compile Include="Mvvm\UserControls\DateOrTimeSeries.cs" />
+    <Compile Include="Mvvm\UserControls\DateOrTimeType.cs" />
+    <Compile Include="Mvvm\UserControls\DateOrTimeSingleChart.xaml.cs">
+      <DependentUpon>DateOrTimeSingleChart.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Mvvm\UserControls\Line.cs" />
-    <Compile Include="Mvvm\UserControls\LineSeries.cs" />
-    <Compile Include="Mvvm\UserControls\ScaleType.cs" />
-    <Compile Include="Mvvm\UserControls\Series.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -70,7 +69,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Mvvm\UserControls\SingleAxisChart.xaml">
+    <Page Include="Mvvm\UserControls\DateOrTimeSingleChart.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
