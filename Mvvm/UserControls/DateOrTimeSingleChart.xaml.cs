@@ -224,14 +224,6 @@ namespace WpfChartV1.Mvvm.UserControls
         }
 
         /// <summary>
-        /// Chartsﾌﾟﾛﾊﾟﾃｨ変更時のｲﾍﾞﾝﾄ
-        /// </summary>
-        private static void OnSetChartsCallback(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            Console.WriteLine("OnSetChartsCallback");
-        }
-
-        /// <summary>
         /// ﾏｳｽ右ｸﾘｯｸされている状態か
         /// </summary>
         private bool IsMouseRightClicking { get; set; } = false;
@@ -277,7 +269,7 @@ namespace WpfChartV1.Mvvm.UserControls
             foreach (var c in Charts)
             {
                 c.Width = ActualWidth;
-                c.Height = (ActualHeight - XAxisImage.ActualHeight) / percentage * c.PercentageHeight;
+                c.Height = (ActualHeight - XAxisImage.Source.Height) / percentage * c.PercentageHeight;
                 c.Draw(this, xheaders);
             }
 

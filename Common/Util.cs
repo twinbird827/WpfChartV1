@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WpfChartV1.Mvvm.UserControls;
 using WpfUtilV2.Common;
+using WpfUtilV2.Extensions;
 
 namespace WpfChartV1.Common
 {
@@ -45,7 +46,7 @@ namespace WpfChartV1.Common
         /// </summary>
         internal static SolidColorBrush RightClickBrush
         {
-            get { return _RightClickBrush = _RightClickBrush ?? (new SolidColorBrush(RightClickColor)).GetAsFrozen() as SolidColorBrush; }
+            get { return _RightClickBrush = _RightClickBrush ?? new SolidColorBrush(RightClickColor).Frozen(); }
         }
         private static SolidColorBrush _RightClickBrush;
 
